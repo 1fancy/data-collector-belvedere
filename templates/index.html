@@ -112,6 +112,9 @@
   .summary .l{font-size:12px;color:var(--mute);margin-top:2px}
   .summary .s.sel .n{color:var(--navy)} .summary .s.ok .n{color:var(--green-d)}
   .summary .s.wait .n{color:var(--amber)} .summary .s.des .n{color:var(--red)}
+  .summary .s.dup .n{color:var(--amber)}
+  .summary .s.clickdup{cursor:pointer} .summary .s.clickdup:hover{background:#fdf7e6}
+  .summary .s.clickdup.active{background:#fdf3e0;box-shadow:inset 0 -3px 0 var(--amber)}
   .summary .s.sep{border-left:2px solid var(--line)}
 
   /* ---- table card ---- */
@@ -137,6 +140,22 @@
   tbody td{padding:11px 14px;border-bottom:1px solid var(--line-s);vertical-align:top}
   tbody tr:nth-child(even) td{background:#fafcfe}
   tbody tr:hover td{background:#f1f6fd}
+
+  /* colonnes collantes à droite : Dossier + Lettre (toujours visibles) */
+  th.stickylet,td.stickylet{position:sticky;right:0;z-index:3;background:#fff;min-width:118px;width:118px}
+  th.stickydocs,td.stickydocs{position:sticky;right:118px;z-index:3;background:#fff;
+    min-width:96px;width:96px;box-shadow:-7px 0 9px -7px rgba(20,38,64,.18)}
+  thead th.stickydocs,thead th.stickylet{z-index:6;background:#f4f7fc}
+  tbody tr:nth-child(even) td.stickydocs,tbody tr:nth-child(even) td.stickylet{background:#fafcfe}
+  tbody tr:hover td.stickydocs,tbody tr:hover td.stickylet{background:#f1f6fd}
+  tr.duprow td.stickydocs,tr.duprow td.stickylet{background:#fffdf5}
+
+  /* doublons : regroupés + signalés */
+  tr.duprow td{background:#fffdf5!important}
+  tr.duprow:hover td{background:#fdf7e6!important}
+  tr.dupstart td{border-top:2px solid var(--amber)}
+  .dupbadge{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:700;color:#fff;
+    background:var(--amber);padding:1px 6px;border-radius:999px;vertical-align:middle;text-transform:uppercase}
   td.name{font-weight:600;min-width:160px}
   td.name .note{font-weight:400;color:var(--mute);font-size:11.5px;margin-top:2px}
   td.addr{max-width:260px;color:#39434f}
@@ -210,15 +229,15 @@
   .dialog .df{padding:12px 22px 20px;display:flex;gap:10px;justify-content:flex-end}
 
   /* folder picker */
-  .pickdlg{width:min(680px,96vw)}
+  .pickdlg{width:min(980px,96vw)}
   .pkbar{display:flex;align-items:center;gap:8px;padding:0 22px 12px}
   .pkup{width:34px;height:34px;flex-shrink:0;border-radius:8px;background:#eef2f8;color:var(--navy);
     display:flex;align-items:center;justify-content:center}
   .pkup:hover{background:#e3e9f3}
   .pkpath{flex:1;background:#f1f4fa;border-radius:8px;padding:8px 11px;font-size:12px;color:var(--navy);
     word-break:break-all;font-variant-numeric:tabular-nums}
-  .pkmain{display:grid;grid-template-columns:170px 1fr;gap:0;border:1px solid var(--line);
-    border-radius:11px;margin:0 22px;overflow:hidden;height:340px}
+  .pkmain{display:grid;grid-template-columns:200px 1fr;gap:0;border:1px solid var(--line);
+    border-radius:11px;margin:0 22px;overflow:hidden;height:min(60vh,520px)}
   .pkplaces{background:#f7f9fc;border-right:1px solid var(--line);padding:8px;overflow:auto}
   .pkpl-h{font-size:10.5px;font-weight:700;color:var(--faint);text-transform:uppercase;
     letter-spacing:.05em;padding:6px 8px 4px}
@@ -234,7 +253,13 @@
   .pkitem .pknm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;flex-direction:column}
   .pkitem .pknm small{color:var(--faint);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .pkitem .pkgo{color:var(--faint);font-size:17px}
+  .pkitem .pkdate{font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums;flex-shrink:0;margin-right:4px}
+  .pksort{flex-shrink:0;padding:7px 9px;border:1px solid var(--line);border-radius:8px;font-size:12px;
+    background:#fbfcfe;color:var(--ink);font-family:inherit;cursor:pointer}
   .pkempty{padding:40px 20px;text-align:center;color:var(--mute);font-size:13px;line-height:1.6}
+  .pkmore{width:100%;text-align:center;padding:10px;margin-top:6px;border-radius:8px;
+    background:#eef3fb;color:var(--navy);font-size:12.5px;font-weight:600}
+  .pkmore:hover{background:#e2eaf7}
   .pksearch{display:flex;align-items:center;gap:8px;margin:12px 22px 0;border:1px solid var(--line);
     border-radius:9px;padding:0 11px;background:#fbfcfe;color:var(--faint)}
   .pksearch input{border:0;background:none;padding:9px 0;flex:1;font-size:13px;color:var(--ink)}
@@ -247,7 +272,7 @@
   .muted-dash{color:var(--faint)}
   .dot-enriched{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
   .detail{justify-content:flex-end;padding:0}
-  .drawer{background:var(--card);width:min(440px,100%);height:100%;display:flex;flex-direction:column;
+  .drawer{background:var(--card);width:min(520px,100%);height:100%;display:flex;flex-direction:column;
     box-shadow:-10px 0 40px rgba(0,0,0,.2);animation:slidein .22s ease}
   @keyframes slidein{from{transform:translateX(100%)}to{transform:none}}
   .dhead{background:var(--navy);color:#fff;padding:18px 20px;display:flex;align-items:flex-start;
@@ -296,7 +321,7 @@
   .ppcopy:hover{background:#e3e9f3;color:var(--navy)} .ppcopy.ok{background:#e4f4ec;color:var(--green-d)}
 
   /* document viewer modal */
-  .docview .dvbox{width:min(900px,96vw);height:min(94vh,1100px);background:#fff;border-radius:14px;
+  .docview .dvbox{width:min(1100px,96vw);height:min(94vh,1100px);background:#fff;border-radius:14px;
     display:flex;flex-direction:column;overflow:hidden}
   .dvhead{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-items:center;
     justify-content:space-between;gap:12px}
@@ -310,9 +335,13 @@
   .docview iframe{flex:1;border:0;background:#fff;width:100%}
 
   /* appbar additions */
-  .appbar .projbtn{display:flex;align-items:center;gap:7px;background:#eef2f8;color:var(--navy);
-    padding:7px 11px;border-radius:9px;font-size:13px;font-weight:600;margin-left:6px}
-  .appbar .projbtn:hover{background:#e3e9f3}
+  .appbar .projbtn{display:inline-flex;align-items:center;gap:7px;background:#eef2f8;color:var(--navy);
+    padding:7px 12px;border-radius:9px;font-size:13px;font-weight:600;margin-left:10px;
+    text-decoration:none;line-height:1;border:1px solid transparent}
+  .appbar .projbtn:hover{background:#e3e9f3;border-color:var(--line)}
+  .appbar .projbtn svg{flex-shrink:0}
+  .appbar .projbtn #projName{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .appbar .projbtn .pjlabel{color:var(--faint);font-weight:500;font-size:11.5px}
   .iconbtn{width:36px;height:36px;border-radius:9px;background:#eef2f8;color:var(--navy);
     display:flex;align-items:center;justify-content:center}
   .iconbtn:hover{background:#e3e9f3}
@@ -342,7 +371,7 @@
   .gatepub{margin-top:16px;font-size:11px;color:var(--faint)}
 
   /* settings */
-  .setdlg{width:min(560px,96vw)}
+  .setdlg{width:min(680px,96vw)}
   .setbody{padding:6px 22px;max-height:66vh;overflow:auto}
   .setsec{font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;
     margin:16px 0 9px}
@@ -356,8 +385,9 @@
   .setabout{font-size:13px;color:var(--ink);line-height:1.6}
 
   /* generate modal */
-  .gendlg{width:min(880px,97vw)}
-  .genmain{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:6px 22px;height:440px}
+  .gendlg{width:min(1200px,97vw)}
+  .genmain{display:grid;grid-template-columns:340px 1fr;gap:18px;padding:6px 24px;
+    height:min(72vh,680px)}
   .genform{overflow:auto}
   .genfolder{display:flex;gap:7px}
   .genfolder input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px}
@@ -392,7 +422,7 @@
   .selbar .selinfo{font-size:13px;font-weight:600;color:var(--green-d)}
   .selbar .btn{padding:8px 14px}
 
-  .viewer .box{width:min(860px,100%);height:min(92vh,1050px);display:flex;flex-direction:column;
+  .viewer .box{width:min(1000px,96vw);height:min(94vh,1100px);display:flex;flex-direction:column;
     border-radius:14px;overflow:hidden;background:#fff}
   .viewer .vh{background:var(--navy);color:#fff;padding:13px 18px;display:flex;align-items:center;
     justify-content:space-between;gap:12px}
@@ -416,8 +446,9 @@
   <img src="/api/logo" alt="Logo" id="appLogo">
   <div class="div"></div>
   <div class="ttl">Data Collector<small id="appSub">Résidence Belvédère</small></div>
-  <button class="projbtn" id="projBtn" title="Projets">
+  <button class="projbtn" id="projBtn" title="Gérer les projets">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <span class="pjlabel">Projet&nbsp;:</span>
     <span id="projName">Projet</span>
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
   </button>
@@ -607,6 +638,12 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m18 15-6-6-6 6"/></svg>
       </button>
       <div class="pkpath" id="pkPath"></div>
+      <select id="pkSort" class="pksort" title="Trier">
+        <option value="name-asc">Nom (A→Z)</option>
+        <option value="name-desc">Nom (Z→A)</option>
+        <option value="date-asc">Plus récent</option>
+        <option value="date-desc">Plus ancien</option>
+      </select>
     </div>
     <div class="pkmain">
       <div class="pkplaces" id="pkPlaces"></div>
@@ -674,6 +711,20 @@
   </div>
 </div>
 
+<!-- NAME PROMPT (projets) -->
+<div class="overlay" id="nameDlg">
+  <div class="dialog" style="width:min(420px,96vw)">
+    <div class="dh"><h2 id="nameTitle">Nom du projet</h2><p id="nameSub"></p></div>
+    <div style="padding:6px 22px 2px">
+      <input type="text" id="nameInput" style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-size:14px">
+    </div>
+    <div class="df">
+      <button class="btn ghost" id="nameCancel">Annuler</button>
+      <button class="btn green" id="nameOk">Valider</button>
+    </div>
+  </div>
+</div>
+
 <!-- GENERATE LETTERS -->
 <div class="overlay" id="genModal">
   <div class="dialog gendlg">
@@ -708,18 +759,21 @@
 <script>
 const $=s=>document.querySelector(s);
 const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let CLIENTS=[], ROOT="", sortK="id", sortDir=1, poll=null, recheckMode="overwrite", autoGen=false;
+// Chemin complet affichable : si rel est déjà absolu (commence par / ou C:\), on le garde.
+const absPath=rel=>(/^(\/|[A-Za-z]:\\)/.test(rel)?rel:(ROOT||'').replace(/\/$/,'')+'/'+rel);
+let CLIENTS=[], ROOT="", sortK="date_courrier", sortDir=-1, poll=null, recheckMode="overwrite", autoGen=false;
 let pageSize=(function(){const s=localStorage.getItem('bv_pagesize');return s==='all'?'all':(parseInt(s)||100);})();
-let curPage=1;
+let curPage=1, showDupsOnly=false;
 
 const COLS=[
   {k:"_sel",t:"",nosort:true,sel:true},
-  {k:"id",t:"#",cls:"num"},{k:"ilot",t:"Îlot",cls:"num"},{k:"immeuble",t:"Imm."},
+  {k:"date_courrier",t:"Date"},
+  {k:"ilot",t:"Îlot",cls:"num"},{k:"immeuble",t:"Imm."},
   {k:"numero",t:"N°",cls:"num"},{k:"type_bien",t:"Type"},{k:"etage",t:"Étage"},
   {k:"nom_prenom",t:"Nom / Prénom"},{k:"cin_str",t:"C.I.N"},{k:"quote_part",t:"Q.P."},
   {k:"tel",t:"Téléphone"},
   {k:"prix_total",t:"Prix (DH)",cls:"money"},{k:"avance",t:"Avance",cls:"money"},
-  {k:"reste",t:"Reste",cls:"money"},{k:"date_courrier",t:"Date"},
+  {k:"reste",t:"Reste",cls:"money"},
   {k:"statut",t:"Statut"},{k:"_docs",t:"Dossier",nosort:true},{k:"_letter",t:"Lettre",nosort:true}
 ];
 let SELECTED=new Set();
@@ -791,19 +845,22 @@ function renderSummary(){
     des=CLIENTS.filter(c=>c.statut==='Désistement').length,
     app=CLIENTS.filter(c=>c.type_bien==='Appartement').length,
     com=CLIENTS.filter(c=>c.type_bien==='Commerce').length;
-  // Deux groupes distincts pour éviter toute confusion :
-  //  - total des biens ; par statut (vendu / désistement / à compléter)
-  //  - répartition par type (appartements + commerces = total)
+  // Doublons : clés (îlot+imm+n°+type) présentes plus d'une fois.
+  const cnt={}; CLIENTS.forEach(c=>{const k=dupKey(c);cnt[k]=(cnt[k]||0)+1;});
+  const dupBiens=Object.values(cnt).filter(n=>n>1).reduce((a,n)=>a+n,0);
   const cards=[
     ['sel',t,'Biens au total'],
     ['ok',v,'Vendus'],
     ...(des?[['des',des,'Désistements']]:[]),
     ...(todo?[['wait',todo,'À compléter']]:[]),
+    ...(dupBiens?[['dup',dupBiens,'Doublons']]:[]),
     ['sep',app,'dont Appartements'],
     ['',com,'dont Commerces'],
   ];
   $('#summary').innerHTML=cards.map(([c,n,l])=>
-    `<div class="s ${c}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+    `<div class="s ${c}${c==='dup'?' clickdup':''}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+  const dc=$('#summary .clickdup'); if(dc){ dc.title='Cliquer pour n\'afficher que les doublons';
+    dc.onclick=()=>{ showDupsOnly=!showDupsOnly; dc.classList.toggle('active',showDupsOnly); curPage=1; render(); }; }
 }
 
 function buildHead(){
@@ -815,7 +872,8 @@ function buildHead(){
       :'<svg width="8" height="8" viewBox="0 0 10 10"><path d="M5 8 1 2h8z" fill="currentColor"/></svg>')
       :'<svg width="8" height="8" viewBox="0 0 10 10" opacity=".4"><path d="M5 1 2 4h6z" fill="currentColor"/><path d="M5 9 2 6h6z" fill="currentColor"/></svg>';
     const ar=c.nosort?'':`<span class="ar">${glyph}</span>`;
-    return `<th data-k="${c.k}" class="${sorted?'sorted':''}" ${c.nosort?'style="cursor:default"':''}>${c.t}${ar}</th>`;
+    const sticky=c.k==='_docs'?' stickydocs':c.k==='_letter'?' stickylet':'';
+    return `<th data-k="${c.k}" class="${sorted?'sorted':''}${sticky}" ${c.nosort?'style="cursor:default"':''}>${c.t}${ar}</th>`;
   }).join('');
   $('#head').querySelectorAll('th[data-k]').forEach(th=>{
     const k=th.dataset.k; if(COLS.find(c=>c.k===k).nosort)return;
@@ -877,6 +935,11 @@ function qpCell(c){
   return os.map(o=>`<div class="owln">${esc(o.qp)?o.qp+'%':'—'}</div>`).join('');
 }
 
+// Clé de doublon : même îlot + immeuble + n° + type.
+function dupKey(c){ return [c.ilot,c.immeuble,c.numero,(c.type_bien||'').toLowerCase().slice(0,4)].join('|'); }
+function parseDate(s){ const m=/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(s||''); if(!m)return 0;
+  let y=+m[3]; if(y<100)y+=2000; return y*10000+(+m[2])*100+(+m[1]); }
+
 function filteredSorted(){
   const q=$('#q').value.trim().toLowerCase(), ft=$('#fType').value, fs=$('#fStatut').value;
   let rows=CLIENTS.filter(c=>{
@@ -886,14 +949,35 @@ function filteredSorted(){
     return [c.nom_prenom,c.cin_str,c.immeuble,c.adresse1,c.tel,c.numero,c.ilot]
       .join(' ').toLowerCase().includes(q);
   });
+  // Détecter les doublons (même îlot+imm+n°+type) sur TOUT le jeu.
+  const counts={}; CLIENTS.forEach(c=>{counts[dupKey(c)]=(counts[dupKey(c)]||0)+1;});
+  rows.forEach(c=>{ c._dup=counts[dupKey(c)]>1; });
+  if(showDupsOnly) rows=rows.filter(c=>c._dup);
+
+  const val=(c)=>{
+    let x=c[sortK];
+    if(sortK==='date_courrier')return parseDate(x);
+    if(['numero','ilot','prix_total','avance','reste'].includes(sortK))return +String(x).replace(/\D/g,'')||0;
+    return (''+(x??'')).toLowerCase();
+  };
   rows.sort((a,b)=>{
-    let x=a[sortK],y=b[sortK];
-    if(['id','numero','ilot'].includes(sortK)||sortK==='prix_total'||sortK==='avance'||sortK==='reste'){
-      x=+String(x).replace(/\D/g,'')||0;y=+String(y).replace(/\D/g,'')||0;
-    } else {x=(''+(x??'')).toLowerCase();y=(''+(y??'')).toLowerCase();}
-    return (x<y?-1:x>y?1:0)*sortDir;
+    const x=val(a),y=val(b);
+    let r=(x<y?-1:x>y?1:0)*sortDir;
+    // Les doublons restent toujours collés ensemble (secondaire : dupKey).
+    if(r===0) return dupKey(a)<dupKey(b)?-1:dupKey(a)>dupKey(b)?1:0;
+    return r;
   });
-  return rows;
+  // Regrouper physiquement les doublons : on réordonne pour que les mêmes
+  // dupKey se suivent, en gardant la position du premier.
+  const seen={}, grouped=[];
+  rows.forEach(c=>{ const k=dupKey(c); if(c._dup){ (seen[k]=seen[k]||[]).push(c);} else grouped.push(c); });
+  // insérer les groupes de doublons à la position de leur premier membre
+  const out=[]; const placed=new Set();
+  rows.forEach(c=>{ const k=dupKey(c);
+    if(c._dup){ if(!placed.has(k)){ placed.add(k); out.push(...seen[k]); } }
+    else out.push(c);
+  });
+  return out;
 }
 
 function render(){
@@ -910,13 +994,19 @@ function render(){
   $('#count').textContent=total?`${start+1}–${end} sur ${total}`:`0 sur ${CLIENTS.length}`;
   const tb=$('#tbody');
   if(!view.length){tb.innerHTML=`<tr><td colspan="${COLS.length}" class="empty" style="padding:40px">Aucun résultat.</td></tr>`;renderPager(total,pages);return;}
-  tb.innerHTML=view.map(c=>{
+  // Repérer les frontières de groupes de doublons (pour un liseré visuel).
+  tb.innerHTML=view.map((c,idx)=>{
     const multi=owners(c).length>1?' multi':'';
     const chk=SELECTED.has(c.id)?'checked':'';
-    return `<tr class="${multi?'multirow':''}${SELECTED.has(c.id)?' selrow':''}">
+    const prev=view[idx-1];
+    const dupStart=c._dup && (!prev||dupKey(prev)!==dupKey(c));
+    const dupCls=c._dup?' duprow':''; const startCls=dupStart?' dupstart':'';
+    const dupBadge=dupStart?`<span class="dupbadge" title="Plusieurs biens avec le même Îlot/Immeuble/N°/Type">doublon</span>`:'';
+    return `<tr class="${multi?'multirow':''}${SELECTED.has(c.id)?' selrow':''}${dupCls}${startCls}">
     <td class="selcol"><input type="checkbox" class="selchk rowchk" data-id="${c.id}" ${chk}></td>
-    <td class="num">${c.id}</td><td class="num">${esc(c.ilot)}</td><td>${esc(c.immeuble)}</td>
-    <td class="num">${esc(c.numero)}</td><td class="ttype">${esc(c.type_bien)}</td><td>${esc(c.etage)||'—'}</td>
+    <td class="num dt">${esc(c.date_courrier)||'—'}</td>
+    <td class="num">${esc(c.ilot)}</td><td>${esc(c.immeuble)}</td>
+    <td class="num">${esc(c.numero)}${dupBadge}</td><td class="ttype">${esc(c.type_bien)}</td><td>${esc(c.etage)||'—'}</td>
     <td class="name">${nameCell(c)}</td>
     <td class="cin">${cinCell(c)}</td>
     <td class="qp num">${qpCell(c)}</td>
@@ -924,10 +1014,9 @@ function render(){
     <td class="money num">${esc(c.prix_total)||'—'}</td>
     <td class="money num">${esc(c.avance)||'—'}</td>
     <td class="money num">${esc(c.reste)||'—'}</td>
-    <td class="num">${esc(c.date_courrier)||'—'}</td>
     <td>${pill(c.statut)}</td>
-    <td>${docsCell(c)}</td>
-    <td>${letterCell(c)}</td>
+    <td class="stickydocs">${docsCell(c)}</td>
+    <td class="stickylet">${letterCell(c)}</td>
   </tr>`;}).join('');
   tb.querySelectorAll('.letter-btn').forEach(b=>{ b.onclick=()=>openLetterSmart(+b.dataset.id,b); });
   tb.querySelectorAll('.docs-btn').forEach(b=>{ b.onclick=()=>openDetail(+b.dataset.id); });
@@ -1074,7 +1163,7 @@ let dvRel="";
 function openDocview(rel,label){
   dvRel=rel;
   $('#dvTitle').textContent=label||rel.split('/').pop();
-  $('#dvPathBar').textContent=ROOT.replace(/\/$/,'')+'/'+rel;
+  $('#dvPathBar').textContent=absPath(rel);
   const ext=rel.split('.').pop().toLowerCase();
   const url='/file?p='+encodeURIComponent(rel);
   const frame=$('#dvFrame');
@@ -1096,7 +1185,7 @@ function openDocview(rel,label){
 }
 function closeDocview(){$('#docview').classList.remove('open');$('#dvFrame').src='about:blank';$('#dvFrame').removeAttribute('srcdoc');}
 $('#dvCopy').onclick=async()=>{
-  const full=ROOT.replace(/\/$/,'')+'/'+dvRel;
+  const full=absPath(dvRel);
   try{ await navigator.clipboard.writeText(full);
     $('#dvCopyLabel').textContent='Chemin copié'; setTimeout(()=>$('#dvCopyLabel').textContent='Copier le chemin',1500);
   }catch(e){ prompt('Chemin du fichier :', full); }
@@ -1114,7 +1203,7 @@ function showProv(btn){
     const base=s.split('/').pop();
     return `<div class="ppitem">
       <button class="ppopen" data-rel="${encodeURIComponent(s)}">${esc(srcLabel(s))}</button>
-      <button class="ppcopy" data-full="${esc(ROOT.replace(/\/$/,'')+'/'+s)}" title="Copier le chemin">
+      <button class="ppcopy" data-full="${esc(absPath(s))}" title="Copier le chemin">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
     </div>`;
   }).join('');
@@ -1181,11 +1270,15 @@ $('#browseBtn').onclick=()=>{ pickFolderThen(dir=>addFolder(dir)); };
 function closePicker(){ $('#picker').classList.remove('open'); }
 $('#picker').onclick=e=>{ if(e.target.id==='picker')closePicker(); };
 
+let pkSortMode=(localStorage.getItem('bv_pksort')||'name-asc');
 async function pkBrowse(path){
-  const d=await (await fetch('/api/browse?path='+encodeURIComponent(path||''))).json();
+  const [sort,order]=pkSortMode.split('-');
+  const d=await (await fetch('/api/browse?path='+encodeURIComponent(path||'')
+    +'&sort='+sort+'&order='+order)).json();
   pkCurrent=d.path;
   $('#pkPath').textContent=d.path;
   $('#pkUp').dataset.p=d.parent;
+  $('#pkSort').value=pkSortMode;
   if(d.shortcuts){
     $('#pkPlaces').innerHTML='<div class="pkpl-h">Emplacements</div>'+d.shortcuts.map(s=>
       `<button class="pkplace${s.path===d.path?' cur':''}" data-p="${encodeURIComponent(s.path)}">
@@ -1198,31 +1291,48 @@ async function pkBrowse(path){
     $('#pkList').innerHTML=d.dirs.map(x=>
       `<button class="pkitem" data-p="${encodeURIComponent(x.path)}">
         ${FOLDER_SVG}<span class="pknm">${esc(x.name)}</span>
+        ${x.date?`<span class="pkdate">${esc(x.date)}</span>`:''}
         <span class="pkgo">›</span></button>`).join('');
     $('#pkList').querySelectorAll('.pkitem').forEach(b=>b.onclick=()=>pkBrowse(decodeURIComponent(b.dataset.p)));
   }
 }
+$('#pkSort').addEventListener('change',e=>{ pkSortMode=e.target.value; localStorage.setItem('bv_pksort',pkSortMode); pkBrowse(pkCurrent); });
 $('#pkUp').onclick=()=>pkBrowse($('#pkUp').dataset.p);
 $('#pkChoose').onclick=()=>{ $('#root').value=pkCurrent; closePicker(); };
 
-let pkSearchTimer=null;
+let pkSearchTimer=null, pkSearchDepth=2;
 $('#pkSearch').addEventListener('input',e=>{
   clearTimeout(pkSearchTimer);
   const term=e.target.value.trim();
+  pkSearchDepth=2;
   if(term.length<2){ pkBrowse(pkCurrent); return; }
-  pkSearchTimer=setTimeout(async()=>{
-    $('#pkList').innerHTML='<div class="pkempty">Recherche…</div>';
-    const d=await (await fetch('/api/find_folders?q='+encodeURIComponent(term))).json();
-    if(!d.results.length){ $('#pkList').innerHTML='<div class="pkempty">Aucun dossier trouvé.</div>'; return; }
-    const re=new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
-    $('#pkList').innerHTML=d.results.map(x=>{
-      const name=esc(x.name).replace(re,'<b>$1</b>');
-      return `<button class="pkitem res" data-p="${encodeURIComponent(x.path)}">
-        ${FOLDER_SVG}<span class="pknm">${name}<small>${esc(x.path)}</small></span></button>`;
-    }).join('');
-    $('#pkList').querySelectorAll('.pkitem').forEach(b=>b.onclick=()=>pkBrowse(decodeURIComponent(b.dataset.p)));
-  },280);
+  pkSearchTimer=setTimeout(()=>doFolderSearch(term),280);
 });
+async function doFolderSearch(term){
+  $('#pkList').innerHTML='<div class="pkempty">Recherche…</div>';
+  // On cherche dans le dossier actuellement ouvert (et ses sous-dossiers proches).
+  const d=await (await fetch('/api/find_folders?q='+encodeURIComponent(term)
+    +'&base='+encodeURIComponent(pkCurrent||'')+'&depth='+pkSearchDepth)).json();
+  const re=new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+  let html='';
+  if(!d.results.length){
+    html='<div class="pkempty">Aucun dossier trouvé à cet emplacement.</div>';
+  } else {
+    html=d.results.map(x=>{
+      const name=esc(x.name).replace(re,'<b>$1</b>');
+      const where=x.parent?`<small>dans « ${esc(x.parent)} »</small>`:`<small>${esc(x.path)}</small>`;
+      return `<button class="pkitem res" data-p="${encodeURIComponent(x.path)}">
+        ${FOLDER_SVG}<span class="pknm">${name}${where}</span></button>`;
+    }).join('');
+  }
+  if(d.deep_more){
+    html+=`<button class="pkmore" id="pkMore">Chercher plus profondément dans les sous-dossiers…</button>`;
+  }
+  $('#pkList').innerHTML=html;
+  // Clic sur un résultat : on NAVIGUE dedans (pour voir son contenu / le choisir).
+  $('#pkList').querySelectorAll('.pkitem').forEach(b=>b.onclick=()=>{ $('#pkSearch').value=''; pkBrowse(decodeURIComponent(b.dataset.p)); });
+  const more=$('#pkMore'); if(more) more.onclick=()=>{ pkSearchDepth+=2; doFolderSearch(term); };
+}
 
 /* ---- filters ---- */
 ['#q','#fType','#fStatut'].forEach(s=>$(s).addEventListener('input',()=>{curPage=1;render();}));
@@ -1255,37 +1365,53 @@ async function loadProject(){
 $('#projBtn').onclick=e=>{e.stopPropagation();$('#projMenu').classList.toggle('open');};
 document.addEventListener('click',e=>{ if(!e.target.closest('#projMenu')&&!e.target.closest('#projBtn'))$('#projMenu').classList.remove('open'); });
 $('#projMenu').querySelectorAll('.pmitem').forEach(b=>b.onclick=()=>{ $('#projMenu').classList.remove('open'); projAction(b.dataset.act); });
-async function projAction(act){
+const H={'Content-Type':'application/json'};
+
+// Petit dialogue de saisie de nom (remplace prompt()).
+let nameCb=null;
+function askName(title, sub, value, cb){
+  $('#nameTitle').textContent=title; $('#nameSub').textContent=sub||'';
+  $('#nameSub').style.display=sub?'':'none';
+  $('#nameInput').value=value||''; nameCb=cb;
+  $('#nameDlg').classList.add('open');
+  setTimeout(()=>{$('#nameInput').focus();$('#nameInput').select();},50);
+}
+$('#nameCancel').onclick=()=>{ $('#nameDlg').classList.remove('open'); nameCb=null; };
+$('#nameDlg').onclick=e=>{ if(e.target.id==='nameDlg'){$('#nameDlg').classList.remove('open');nameCb=null;} };
+$('#nameOk').onclick=()=>{ const v=$('#nameInput').value.trim(); if(!v)return; const cb=nameCb; $('#nameDlg').classList.remove('open'); nameCb=null; cb&&cb(v); };
+$('#nameInput').addEventListener('keydown',e=>{ if(e.key==='Enter')$('#nameOk').click(); });
+
+function projAction(act){
   if(act==='new'){
-    const name=prompt('Nom du nouveau projet :','Projet '+new Date().toLocaleDateString('fr-FR'));
-    if(name===null)return;
-    await fetch('/api/project_new',{method:'POST',headers:H,body:JSON.stringify({name})});
-    SELECTED.clear(); updateSelBar(); await loadProject(); location.reload();
+    askName('Nouveau projet','Donnez-lui un nom.','Projet '+todayStr(),async(name)=>{
+      await fetch('/api/project_new',{method:'POST',headers:H,body:JSON.stringify({name})});
+      SELECTED.clear(); location.reload();
+    });
   } else if(act==='rename'){
-    const name=prompt('Nouveau nom du projet :',$('#projName').textContent);
-    if(!name)return;
-    await fetch('/api/project_rename',{method:'POST',headers:H,body:JSON.stringify({name})});
-    loadProject();
+    askName('Renommer le projet','',$('#projName').textContent,async(name)=>{
+      await fetch('/api/project_rename',{method:'POST',headers:H,body:JSON.stringify({name})});
+      loadProject(); toast('Projet renommé.');
+    });
   } else if(act==='saveas'){
     openSaveAs();
   } else if(act==='import'){
     openImport();
   }
 }
+function todayStr(){ const d=new Date(); return (''+d.getDate()).padStart(2,'0')+'-'+(''+(d.getMonth()+1)).padStart(2,'0')+'-'+d.getFullYear(); }
 async function openProject(path){
   await fetch('/api/project_open',{method:'POST',headers:H,body:JSON.stringify({path})});
   SELECTED.clear(); location.reload();
 }
-const H={'Content-Type':'application/json'};
 
-// Enregistrer sous : réutilise le sélecteur de dossier puis demande un nom.
+// Enregistrer sous : choisir un dossier puis donner un nom.
 function openSaveAs(){
-  pickFolderThen(async(dir)=>{
-    const name=prompt('Nom du projet (fichier) :',$('#projName').textContent);
-    if(!name)return;
-    const path=dir.replace(/\/$/,'')+'/'+name.replace(/[^\w\s().-]/g,'')+'.db';
-    await fetch('/api/project_saveas',{method:'POST',headers:H,body:JSON.stringify({path})});
-    loadProject(); toast('Projet enregistré.');
+  pickFolderThen((dir)=>{
+    askName('Enregistrer le projet sous','Emplacement : '+dir,$('#projName').textContent,async(name)=>{
+      const path=dir.replace(/\/$/,'')+'/'+name.replace(/[^\w\s().-]/g,'')+'.db';
+      await fetch('/api/project_saveas',{method:'POST',headers:H,body:JSON.stringify({path})});
+      loadProject(); toast('Projet enregistré : '+name);
+    });
   });
 }
 

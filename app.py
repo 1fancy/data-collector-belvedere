@@ -312,31 +312,62 @@ class Handler(BaseHTTPRequestHandler):
 
         if p == "/api/browse":
             start = (q.get("path", [None])[0]) or os.path.expanduser("~/Desktop")
+            sort = (q.get("sort", ["name"])[0])      # name | date
+            order = (q.get("order", ["asc"])[0])     # asc | desc
             path = os.path.abspath(os.path.expanduser(start))
             if not os.path.isdir(path):
                 path = os.path.expanduser("~")
+            items = []
             try:
-                dirs = sorted(d for d in os.listdir(path)
-                              if os.path.isdir(os.path.join(path, d)) and not d.startswith("."))
+                for d in os.listdir(path):
+                    full = os.path.join(path, d)
+                    if d.startswith(".") or not os.path.isdir(full):
+                        continue
+                    try:
+                        mt = os.path.getmtime(full)
+                    except OSError:
+                        mt = 0
+                    items.append({"name": d, "path": full, "mtime": mt})
             except PermissionError:
-                dirs = []
+                items = []
+            if sort == "date":
+                items.sort(key=lambda x: x["mtime"], reverse=(order == "asc"))
+            else:
+                items.sort(key=lambda x: x["name"].lower(), reverse=(order == "desc"))
+            # date lisible
+            import datetime as _dt
+            for it in items:
+                it["date"] = _dt.datetime.fromtimestamp(it["mtime"]).strftime("%d/%m/%Y") if it["mtime"] else ""
             return self._send(200, {"path": path, "parent": os.path.dirname(path),
-                "dirs": [{"name": d, "path": os.path.join(path, d)} for d in dirs],
-                "shortcuts": shortcuts()})
+                "dirs": items, "shortcuts": shortcuts(), "sort": sort, "order": order})
 
         if p == "/api/find_folders":
             term = (q.get("q", [""])[0]).strip().lower()
             if len(term) < 2:
-                return self._send(200, {"results": []})
-            roots = [os.path.expanduser("~/Desktop"), os.path.expanduser("~/Documents"),
-                     os.path.expanduser("~/Downloads"), os.path.expanduser("~")]
+                return self._send(200, {"results": [], "deep_more": False})
+            # Recherche dans le dossier en cours de navigation (et ses sous-dossiers
+            # proches). Si "base" n'est pas fourni, on retombe sur les emplacements usuels.
+            base = q.get("base", [""])[0]
+            if base:
+                base = os.path.abspath(os.path.expanduser(base))
+                bases = [base] if os.path.isdir(base) else []
+            else:
+                bases = [os.path.expanduser("~/Desktop"), os.path.expanduser("~/Documents"),
+                         os.path.expanduser("~/Downloads"), os.path.expanduser("~")]
+            max_depth = int(q.get("depth", ["2"])[0])  # profondeur limitée
             seen, results = set(), []
-            for base in roots:
-                if not os.path.isdir(base):
+            deep_more = False
+            for b in bases:
+                if not os.path.isdir(b):
                     continue
-                for dirpath, dirnames, _ in os.walk(base):
-                    depth = dirpath[len(base):].count(os.sep)
-                    if depth >= 4:
+                for dirpath, dirnames, _ in os.walk(b):
+                    dirnames[:] = [d for d in dirnames if not d.startswith(".")]
+                    depth = dirpath[len(b):].count(os.sep)
+                    if depth >= max_depth:
+                        # On arrête de descendre ; s'il reste des sous-dossiers,
+                        # il peut y avoir des correspondances plus profondes.
+                        if dirnames:
+                            deep_more = True
                         dirnames[:] = []
                         continue
                     dirnames[:] = [d for d in dirnames if not d.startswith(".")]
@@ -345,13 +376,15 @@ class Handler(BaseHTTPRequestHandler):
                             full = os.path.join(dirpath, d)
                             if full not in seen:
                                 seen.add(full)
-                                results.append({"name": d, "path": full})
-                    if len(results) >= 40:
+                                results.append({"name": d, "path": full,
+                                                "parent": os.path.basename(dirpath)})
+                    if len(results) >= 60:
                         break
-                if len(results) >= 40:
+                if len(results) >= 60:
                     break
             results.sort(key=lambda r: (not r["name"].lower().startswith(term), len(r["name"])))
-            return self._send(200, {"results": results[:40]})
+            return self._send(200, {"results": results[:60], "deep_more": deep_more,
+                                    "base": bases[0] if bases else ""})
 
         if p.startswith("/letter/"):
             try:

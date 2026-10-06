@@ -563,29 +563,54 @@ def scan_folder_documents(folder, root, want_ocr=True):
 
 
 def parse_path(path):
+    """Déduit Îlot/Immeuble/N°/Étage/Type du chemin du dossier.
+
+    Tolère de nombreuses variantes de nommage, par ex. :
+      "ILOT 1/IMM E APPT 13 ETAGE 3"
+      "ILOT1/APPART 21 IMM.G ILOT 1 4éme etage"
+      "IMM-C COMMERCE 05", "Appartement N° 10", etc.
+    """
     d = dict(ilot="", immeuble="", numero="", etage="", type_dossier="", statut="")
+    # On regarde chaque composant du chemin ; le plus profond (le bien) prime.
     for p in path.split(os.sep):
-        up = p.upper()
-        m = re.match(r"ILOT\s*(\d+)", up)
+        up = p.upper().replace("É", "E").replace("È", "E")
+
+        m = re.search(r"\bILOT\s*[:\-]?\s*(\d+)", up)
         if m:
             d["ilot"] = m.group(1)
-        m = re.match(r"IMM\s+([A-Z])\b", up)
+
+        # Immeuble : IMM / IMMEUBLE / BLOC suivi d'une lettre (point, tiret, espace)
+        m = re.search(r"\b(?:IMMEUBLE|IMM|BLOC|BL)\s*[.\-:]?\s*([A-Z])\b", up)
         if m:
             d["immeuble"] = m.group(1)
-        if "COMMERCE" in up:
+
+        if "COMMERCE" in up or "MAGASIN" in up or "LOCAL" in up:
             d["type_dossier"] = "Commerce"
-            m = re.search(r"COMMERCE\s*0*(\d+)", up)
+            m = re.search(r"(?:COMMERCE|MAGASIN|LOCAL)\s*(?:N[°O]?\s*)?0*(\d+)", up)
             if m:
                 d["numero"] = m.group(1)
-        if "APPARTEMENT" in up or "APPT" in up:
+
+        if re.search(r"\bAPPART|\bAPPT|\bAPP\b|\bAPPARTEMENT", up):
             d["type_dossier"] = "Appartement"
-            m = re.search(r"(?:APPARTEMENT|APPT)\s*0*(\d+)", up)
+            m = re.search(r"(?:APPARTEMENT|APPART|APPT|APP)\s*(?:N[°O]?\s*)?0*(\d+)", up)
             if m:
                 d["numero"] = m.group(1)
-        m = re.search(r"ETAGE\s*(\d+)", up)
-        if m:
-            d["etage"] = m.group(1)
-        if "DESISTEMENT" in up:
+
+        if "VILLA" in up:
+            d["type_dossier"] = "Villa"
+            m = re.search(r"VILLA\s*(?:N[°O]?\s*)?0*(\d+)", up)
+            if m:
+                d["numero"] = m.group(1)
+
+        if "RDC" in up:
+            d["etage"] = "RDC"
+        else:
+            m = re.search(r"ETAGE\s*0*(\d+)", up) or re.search(r"\b(\d+)\s*[EÉ]ME\s*ETAGE", up) \
+                or re.search(r"\b(\d+)\s*(?:ER|EME)\s*ETAGE", up)
+            if m:
+                d["etage"] = m.group(1)
+
+        if "DESISTEMENT" in up or "DESIST" in up:
             d["statut"] = "Désistement"
     return d
 
@@ -946,7 +971,15 @@ def scan(roots, mode="overwrite", existing=None, deep=True, progress=None):
             cin_verifiee=cin_verif,
             provenance=prov,
         )
-        clients[_key(rec["ilot"], rec["immeuble"], rec["numero"], type_bien)] = rec
+        rec["source_folder"] = folder
+        k = _key(rec["ilot"], rec["immeuble"], rec["numero"], type_bien)
+        if k in clients and clients[k].get("source_folder") != folder:
+            # Même îlot+imm+n°+type mais AUTRE dossier -> doublon : on garde les deux.
+            rec["is_duplicate"] = True
+            clients[k]["is_duplicate"] = True
+            clients[k + "#DUP#" + os.path.basename(folder)] = rec
+        else:
+            clients[k] = rec
 
     xlsx_files = []
     for root in roots:

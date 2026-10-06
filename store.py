@@ -101,7 +101,7 @@ def init():
     );
     CREATE TABLE IF NOT EXISTS clients (
         id INTEGER PRIMARY KEY,
-        bkey TEXT UNIQUE,
+        bkey TEXT,
         data TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS owners (
@@ -115,6 +115,21 @@ def init():
         key TEXT PRIMARY KEY, value TEXT
     );
     """)
+    # Migration : si la table clients a une contrainte UNIQUE sur bkey (ancien
+    # schéma), elle écrase les doublons. On la recrée sans cette contrainte.
+    try:
+        sql = con.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name='clients'"
+        ).fetchone()
+        if sql and "UNIQUE" in (sql["sql"] or ""):
+            con.executescript("""
+                ALTER TABLE clients RENAME TO clients_old;
+                CREATE TABLE clients (id INTEGER PRIMARY KEY, bkey TEXT, data TEXT NOT NULL);
+                INSERT INTO clients (id, bkey, data) SELECT id, bkey, data FROM clients_old;
+                DROP TABLE clients_old;
+            """)
+    except Exception:
+        pass
     con.commit()
     con.close()
 
