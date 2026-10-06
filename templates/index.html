@@ -1,0 +1,1442 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Romana · Résidence Belvédère — Console clients</title>
+<style>
+  :root{
+    --navy:#143a82; --navy-d:#0f2c64; --blue:#0b78bd; --green:#5bb11f;
+    --green-d:#4a9418; --ink:#1c2430; --mute:#677184; --faint:#9aa4b4;
+    --paper:#eef2f8; --card:#ffffff; --line:#e1e7f1; --line-s:#eef1f7;
+    --amber:#c6820a; --red:#c0392b;
+    --shadow:0 1px 2px rgba(20,38,64,.06), 0 4px 16px rgba(20,38,64,.05);
+    --bar-h:60px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--paper);color:var(--ink);font-size:14px;line-height:1.5;
+       -webkit-font-smoothing:antialiased}
+  .num{font-variant-numeric:tabular-nums}
+  button{font-family:inherit;cursor:pointer;border:0}
+  a{color:var(--blue);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ---- top bar ---- */
+  .appbar{height:var(--bar-h);background:var(--card);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:16px;padding:0 22px;position:sticky;top:0;z-index:40}
+  .appbar img{height:38px;display:block}
+  .appbar .div{width:1px;height:30px;background:var(--line)}
+  .appbar .ttl{font-weight:600;font-size:15px;letter-spacing:-.01em}
+  .appbar .ttl small{display:block;font-weight:400;color:var(--mute);font-size:12px;letter-spacing:0}
+  .appbar .right{margin-left:auto;display:flex;align-items:center;gap:14px}
+  .caps{display:flex;gap:7px}
+  .cap{font-size:11px;padding:3px 9px;border-radius:999px;background:#f0f3f9;color:var(--mute);
+    display:flex;align-items:center;gap:5px}
+  .cap b{width:7px;height:7px;border-radius:50%;background:var(--faint)}
+  .cap.on b{background:var(--green)} .cap.off b{background:var(--faint)}
+  .cap.off{opacity:.8}
+
+  /* ---- layout ---- */
+  .shell{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - var(--bar-h))}
+  .side{background:var(--card);border-right:1px solid var(--line);padding:22px 20px;
+    display:flex;flex-direction:column;gap:20px;position:sticky;top:var(--bar-h);
+    height:calc(100vh - var(--bar-h));overflow:auto}
+  .main{padding:22px 26px 60px;min-width:0}
+
+  .field label{display:block;font-weight:600;font-size:12.5px;margin-bottom:7px;color:var(--ink)}
+  .field .sub{color:var(--mute);font-size:12px;margin-top:7px;line-height:1.45}
+  input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;
+    font-size:13px;background:#fbfcfe;color:var(--ink)}
+  input[type=text]:focus{outline:none;border-color:var(--blue);background:#fff;
+    box-shadow:0 0 0 3px rgba(11,120,189,.12)}
+  .btnrow{display:flex;gap:8px;margin-top:10px}
+  .btn{padding:10px 14px;border-radius:9px;font-size:13px;font-weight:600;
+    background:var(--navy);color:#fff;display:inline-flex;align-items:center;gap:7px;
+    justify-content:center;transition:background .15s,transform .05s}
+  .btn:hover{background:var(--navy-d)} .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.block{width:100%}
+  .btn.ghost{background:#eef2f8;color:var(--navy)} .btn.ghost:hover{background:#e3e9f3}
+  .btn.green{background:var(--green)} .btn.green:hover{background:var(--green-d)}
+
+  .check{display:flex;align-items:flex-start;gap:9px;font-size:13px;cursor:pointer;
+    padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fbfcfe}
+  .check input{margin-top:2px;width:16px;height:16px;accent-color:var(--navy)}
+  .check .t{font-weight:600} .check .d{color:var(--mute);font-size:12px;margin-top:2px}
+
+  /* scan progress */
+  .scan{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fbfcff}
+  .scan h3{margin:0 0 4px;font-size:12.5px;font-weight:700;color:var(--navy)}
+  .scan .state{font-size:12px;color:var(--mute);min-height:34px;line-height:1.4;
+    font-variant-numeric:tabular-nums;word-break:break-word}
+  .track{height:8px;background:#e4eaf4;border-radius:999px;overflow:hidden;margin:12px 0 4px}
+  .track>i{display:block;height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--navy),var(--blue));transition:width .35s ease}
+  .track.done>i{background:linear-gradient(90deg,var(--green),#86cf3f)}
+  .pcts{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);
+    font-variant-numeric:tabular-nums}
+  .pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--blue);
+    margin-right:6px;animation:pulse 1.1s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+  .explorer{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:none}
+  .explorer.open{display:block}
+  .explorer .path{padding:9px 11px;font-size:11.5px;color:var(--navy);background:#f1f4fa;
+    border-bottom:1px solid var(--line);word-break:break-all}
+  .explorer ul{list-style:none;margin:0;padding:0;max-height:220px;overflow:auto}
+  .explorer li{padding:8px 11px;font-size:12.5px;cursor:pointer;border-bottom:1px solid var(--line-s);
+    display:flex;align-items:center;gap:8px}
+  .explorer li:hover{background:#f3f6fc}
+  .explorer li.up{color:var(--mute)}
+  .explorer .pick{padding:9px 11px}
+  .expsearch{padding:9px 10px;border-bottom:1px solid var(--line-s)}
+  .expsearch input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;
+    font-size:12.5px;background:#fff}
+  .shortcuts{display:flex;flex-wrap:wrap;gap:6px;padding:9px 10px;border-bottom:1px solid var(--line-s)}
+  .shortcuts button{font-size:11.5px;padding:5px 10px;border-radius:7px;background:#eef2f8;
+    color:var(--navy);font-weight:600}
+  .shortcuts button:hover{background:#e3e9f3}
+  .explorer li .ic{width:15px;height:15px;color:var(--faint);flex-shrink:0}
+  .explorer li.match b{color:var(--navy)}
+  .explorer .res-path{font-size:11px;color:var(--faint);margin-left:auto;max-width:50%;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl}
+
+  /* ---- summary strip ---- */
+  .summary{display:flex;gap:0;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;overflow:hidden;margin-bottom:18px;box-shadow:var(--shadow)}
+  .summary .s{flex:1;padding:15px 18px;border-right:1px solid var(--line-s)}
+  .summary .s:last-child{border-right:0}
+  .summary .n{font-size:24px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .summary .l{font-size:12px;color:var(--mute);margin-top:2px}
+  .summary .s.sel .n{color:var(--navy)} .summary .s.ok .n{color:var(--green-d)}
+  .summary .s.wait .n{color:var(--amber)} .summary .s.des .n{color:var(--red)}
+  .summary .s.sep{border-left:2px solid var(--line)}
+
+  /* ---- table card ---- */
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);overflow:hidden}
+  .controls{display:flex;gap:10px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line-s);
+    flex-wrap:wrap}
+  .search{flex:1;min-width:220px;position:relative}
+  .search input{padding-left:34px}
+  .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--faint)}
+  select{padding:9px 11px;border:1px solid var(--line);border-radius:9px;font-size:13px;
+    background:#fbfcfe;color:var(--ink);font-family:inherit}
+  .count{margin-left:auto;font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+
+  .tablewrap{overflow:auto;max-height:calc(100vh - 290px)}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  thead th{position:sticky;top:0;z-index:2;background:#f4f7fc;color:var(--navy);
+    font-weight:600;text-align:left;padding:11px 14px;white-space:nowrap;cursor:pointer;
+    user-select:none;border-bottom:1px solid var(--line);font-size:12px}
+  thead th:hover{background:#eaf0f9}
+  thead th .ar{opacity:.4;font-size:10px;margin-left:3px}
+  thead th.sorted .ar{opacity:1;color:var(--blue)}
+  tbody td{padding:11px 14px;border-bottom:1px solid var(--line-s);vertical-align:top}
+  tbody tr:nth-child(even) td{background:#fafcfe}
+  tbody tr:hover td{background:#f1f6fd}
+  td.name{font-weight:600;min-width:160px}
+  td.name .note{font-weight:400;color:var(--mute);font-size:11.5px;margin-top:2px}
+  td.addr{max-width:260px;color:#39434f}
+  td.cin,td.tel,td.money,td.qp{font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.money{text-align:right}
+  thead th.money-h{text-align:right}
+  td.cin{font-feature-settings:"tnum";color:#39434f;letter-spacing:.01em}
+  .todo-name{color:var(--amber);font-weight:600;font-style:italic}
+  /* largeurs maîtrisées */
+  td.name{max-width:220px} td.name b{font-weight:600}
+  td.ttype,thead th:nth-child(5){white-space:nowrap}
+  td.tel{white-space:nowrap}
+  /* co-acquéreurs : une ligne par personne, alignées entre colonnes */
+  .owln{padding:2px 0;line-height:1.3}
+  .owln+.owln{border-top:1px dashed var(--line);margin-top:2px;padding-top:4px}
+  tr.multirow td{vertical-align:top}
+  tr.multirow td.cin .owln,tr.multirow td.qp .owln{min-height:20px}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:999px;
+    font-size:11.5px;font-weight:600;white-space:nowrap}
+  .pill.vendu{background:#e9f6ea;color:var(--green-d)}
+  .pill.desist{background:#fdeceb;color:var(--red)}
+  .pill.todo{background:#fdf3e0;color:var(--amber)}
+  .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7}
+
+  .letter-btn{padding:6px 11px;border-radius:8px;font-size:12px;font-weight:600;
+    display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
+  .letter-btn .lbico{display:inline-flex} .letter-btn .lbico svg{width:14px;height:14px}
+  .letter-btn.gen{background:var(--navy);color:#fff}
+  .letter-btn.gen:hover{background:var(--navy-d)}
+  .letter-btn.ready{background:#eaf3ea;color:var(--green-d);border:1px solid #cfe8cf}
+  .letter-btn.ready:hover{background:#e0efe0}
+  .letter-btn.busy{background:#eef2f8;color:var(--mute);cursor:wait}
+
+  /* pagination */
+  .pager{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 16px;border-top:1px solid var(--line-s);flex-wrap:wrap}
+  .pgsize{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--mute)}
+  .pgsize select{padding:6px 9px;font-size:12.5px}
+  .pgnav{display:flex;align-items:center;gap:4px}
+  .pgb{min-width:32px;height:32px;padding:0 9px;border-radius:7px;background:#f0f3f9;
+    color:var(--navy);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+  .pgb:hover:not(:disabled){background:#e3e9f3} .pgb:disabled{opacity:.4;cursor:default}
+  .pgb.cur{background:var(--navy);color:#fff}
+  .pgdots{color:var(--faint);padding:0 2px}
+  .spin{width:12px;height:12px;border:2px solid rgba(0,0,0,.15);border-top-color:currentColor;
+    border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .empty{padding:60px 20px;text-align:center;color:var(--mute)}
+  .empty svg{color:var(--line);margin-bottom:12px}
+  .empty h3{margin:0 0 6px;color:var(--ink);font-weight:600}
+
+  /* ---- modals ---- */
+  .overlay{position:fixed;inset:0;background:rgba(15,28,54,.55);backdrop-filter:blur(2px);
+    display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
+  .overlay.open{display:flex}
+  .dialog{background:var(--card);border-radius:14px;width:min(500px,100%);overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.3);animation:rise .2s ease}
+  @keyframes rise{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+  .dialog .dh{padding:20px 22px 6px}
+  .dialog .dh h2{margin:0;font-size:17px;letter-spacing:-.01em}
+  .dialog .dh p{margin:8px 0 0;color:var(--mute);font-size:13px}
+  .dialog .opts{padding:14px 22px}
+  .opt{border:1.5px solid var(--line);border-radius:11px;padding:14px;cursor:pointer;
+    margin-bottom:10px;transition:.15s;display:flex;gap:12px}
+  .opt:hover{border-color:var(--blue);background:#f7fbfe}
+  .opt.sel{border-color:var(--navy);background:#f4f8ff}
+  .opt .ic{line-height:1;color:var(--navy);flex-shrink:0}
+  .opt .t{font-weight:600;font-size:13.5px} .opt .d{color:var(--mute);font-size:12.5px;margin-top:3px}
+  .dialog .df{padding:12px 22px 20px;display:flex;gap:10px;justify-content:flex-end}
+
+  /* folder picker */
+  .pickdlg{width:min(680px,96vw)}
+  .pkbar{display:flex;align-items:center;gap:8px;padding:0 22px 12px}
+  .pkup{width:34px;height:34px;flex-shrink:0;border-radius:8px;background:#eef2f8;color:var(--navy);
+    display:flex;align-items:center;justify-content:center}
+  .pkup:hover{background:#e3e9f3}
+  .pkpath{flex:1;background:#f1f4fa;border-radius:8px;padding:8px 11px;font-size:12px;color:var(--navy);
+    word-break:break-all;font-variant-numeric:tabular-nums}
+  .pkmain{display:grid;grid-template-columns:170px 1fr;gap:0;border:1px solid var(--line);
+    border-radius:11px;margin:0 22px;overflow:hidden;height:340px}
+  .pkplaces{background:#f7f9fc;border-right:1px solid var(--line);padding:8px;overflow:auto}
+  .pkpl-h{font-size:10.5px;font-weight:700;color:var(--faint);text-transform:uppercase;
+    letter-spacing:.05em;padding:6px 8px 4px}
+  .pkplace{width:100%;display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:7px;
+    font-size:12.5px;color:var(--ink);text-align:left}
+  .pkplace:hover{background:#e9eef7} .pkplace.cur{background:#e2eaf7;color:var(--navy);font-weight:600}
+  .pkplace .ic{width:15px;height:15px;color:var(--gold);flex-shrink:0}
+  .pklist{overflow:auto;padding:6px}
+  .pkitem{width:100%;display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:8px;
+    font-size:13px;color:var(--ink);text-align:left}
+  .pkitem:hover{background:#f1f6fd}
+  .pkitem .ic{width:17px;height:17px;color:var(--gold);flex-shrink:0}
+  .pkitem .pknm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;flex-direction:column}
+  .pkitem .pknm small{color:var(--faint);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pkitem .pkgo{color:var(--faint);font-size:17px}
+  .pkempty{padding:40px 20px;text-align:center;color:var(--mute);font-size:13px;line-height:1.6}
+  .pksearch{display:flex;align-items:center;gap:8px;margin:12px 22px 0;border:1px solid var(--line);
+    border-radius:9px;padding:0 11px;background:#fbfcfe;color:var(--faint)}
+  .pksearch input{border:0;background:none;padding:9px 0;flex:1;font-size:13px;color:var(--ink)}
+  .pksearch input:focus{outline:none}
+
+  /* ---- documents cell + detail drawer ---- */
+  .docs-btn{padding:6px 11px;border-radius:8px;font-size:12px;font-weight:600;
+    background:#eef3fb;color:var(--navy);display:inline-flex;align-items:center;gap:6px}
+  .docs-btn:hover{background:#e2eaf7}
+  .muted-dash{color:var(--faint)}
+  .dot-enriched{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
+  .detail{justify-content:flex-end;padding:0}
+  .drawer{background:var(--card);width:min(440px,100%);height:100%;display:flex;flex-direction:column;
+    box-shadow:-10px 0 40px rgba(0,0,0,.2);animation:slidein .22s ease}
+  @keyframes slidein{from{transform:translateX(100%)}to{transform:none}}
+  .dhead{background:var(--navy);color:#fff;padding:18px 20px;display:flex;align-items:flex-start;
+    justify-content:space-between;gap:12px}
+  .dname{font-size:16px;font-weight:600} .dsub{font-size:12px;opacity:.82;margin-top:3px}
+  .dbody{padding:18px 20px;overflow:auto;flex:1}
+  .enriched-badge{background:#eaf6ea;color:var(--green-d);border:1px solid #cfe8cf;
+    padding:9px 12px;border-radius:9px;font-size:12px;margin-bottom:16px}
+  .fsec{font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;
+    letter-spacing:.06em;margin:18px 0 9px}
+  .fsec:first-child{margin-top:0}
+  .fields{border:1px solid var(--line-s);border-radius:10px;overflow:hidden}
+  .frow{display:flex;justify-content:space-between;gap:14px;padding:9px 13px;font-size:13px;
+    border-bottom:1px solid var(--line-s)}
+  .frow:last-child{border-bottom:0} .frow:nth-child(even){background:#fafcfe}
+  .fl{color:var(--mute);flex-shrink:0} .fv{text-align:right;font-weight:500}
+  .doclist{display:flex;flex-direction:column;gap:8px}
+  .docfile{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid var(--line);
+    border-radius:10px;text-decoration:none;color:var(--ink);transition:.15s}
+  .docfile:hover{border-color:var(--blue);background:#f7fbfe;text-decoration:none}
+  .docfile .dfi{width:34px;height:34px;flex-shrink:0;border-radius:8px;background:#eef3fb;
+    display:flex;align-items:center;justify-content:center;color:var(--navy)}
+  .docfile .dfi svg{width:19px;height:19px}
+  .docfile .dft{display:flex;flex-direction:column;min-width:0}
+  .docfile .dft b{font-size:13px;font-weight:600}
+  .docfile .dft small{font-size:11.5px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docfile{width:100%;text-align:left;background:#fff}
+  .docfile .dft{flex:1} .docfile .dfopen{font-size:11.5px;color:var(--blue);font-weight:600;flex-shrink:0}
+
+  /* info icon + provenance popover */
+  .finfo{display:inline-flex;align-items:center;gap:2px;margin-left:6px;padding:0;background:none;
+    color:var(--faint);vertical-align:middle;position:relative;top:-1px}
+  .finfo svg{width:13px;height:13px} .finfo:hover{color:var(--blue)}
+  .finfo.multi{color:var(--green)} .finfo.multi:hover{color:var(--green-d)}
+  .finfo .cnt{font-size:9px;font-weight:700;line-height:1}
+  .provpop{position:fixed;display:none;z-index:80;background:#fff;border:1px solid var(--line);
+    border-radius:11px;box-shadow:0 12px 36px rgba(15,28,54,.22);padding:10px;width:320px;max-width:92vw}
+  .provpop .pph{font-size:11.5px;color:var(--mute);margin:2px 4px 8px;font-weight:600}
+  .ppitem{display:flex;align-items:center;gap:6px;padding:2px 0}
+  .ppitem>span{font-size:12.5px;color:var(--mute);padding:6px 8px}
+  .ppopen{flex:1;text-align:left;font-size:12.5px;color:var(--navy);background:#f4f7fc;
+    border-radius:7px;padding:8px 10px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ppopen:hover{background:#e9f0f9;text-decoration:underline}
+  .ppcopy{flex-shrink:0;width:30px;height:30px;border-radius:7px;background:#f0f3f9;color:var(--mute);
+    display:flex;align-items:center;justify-content:center}
+  .ppcopy:hover{background:#e3e9f3;color:var(--navy)} .ppcopy.ok{background:#e4f4ec;color:var(--green-d)}
+
+  /* document viewer modal */
+  .docview .dvbox{width:min(900px,96vw);height:min(94vh,1100px);background:#fff;border-radius:14px;
+    display:flex;flex-direction:column;overflow:hidden}
+  .dvhead{background:var(--navy);color:#fff;padding:12px 16px;display:flex;align-items:center;
+    justify-content:space-between;gap:12px}
+  .dvtitle{font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dvactions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .dvpath,.dvdl{background:rgba(255,255,255,.14);color:#fff;border-radius:7px;padding:7px 10px;
+    font-size:12px;display:inline-flex;align-items:center;gap:6px;font-weight:500}
+  .dvpath:hover,.dvdl:hover{background:rgba(255,255,255,.24)}
+  .dvpathbar{background:#f1f4fa;color:var(--mute);font-size:11.5px;padding:7px 16px;
+    border-bottom:1px solid var(--line);word-break:break-all;font-variant-numeric:tabular-nums}
+  .docview iframe{flex:1;border:0;background:#fff;width:100%}
+
+  /* appbar additions */
+  .appbar .projbtn{display:flex;align-items:center;gap:7px;background:#eef2f8;color:var(--navy);
+    padding:7px 11px;border-radius:9px;font-size:13px;font-weight:600;margin-left:6px}
+  .appbar .projbtn:hover{background:#e3e9f3}
+  .iconbtn{width:36px;height:36px;border-radius:9px;background:#eef2f8;color:var(--navy);
+    display:flex;align-items:center;justify-content:center}
+  .iconbtn:hover{background:#e3e9f3}
+  .projmenu{position:fixed;top:54px;left:180px;z-index:70;background:#fff;border:1px solid var(--line);
+    border-radius:11px;box-shadow:0 12px 36px rgba(15,28,54,.2);padding:7px;width:260px;display:none}
+  .projmenu.open{display:block}
+  .pmitem{width:100%;text-align:left;padding:9px 11px;border-radius:7px;font-size:13px;color:var(--ink)}
+  .pmitem:hover{background:#f1f6fd}
+  .pmsep{height:1px;background:var(--line-s);margin:6px 4px}
+  .pmlabel{font-size:10.5px;font-weight:700;color:var(--faint);text-transform:uppercase;padding:4px 11px}
+  .pmrecent{width:100%;text-align:left;padding:8px 11px;border-radius:7px;font-size:12.5px;color:var(--navy)}
+  .pmrecent:hover{background:#eef3fb} .pmrecent.cur{font-weight:700}
+
+  /* access gate */
+  .gate{position:fixed;inset:0;background:linear-gradient(135deg,#1b3a6b,#0b2347);z-index:100;
+    display:none;align-items:center;justify-content:center;padding:20px}
+  .gate.open{display:flex}
+  .gatebox{background:#fff;border-radius:16px;padding:34px 30px;width:min(380px,100%);text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,.4)}
+  .gatelogo{height:64px;margin-bottom:14px}
+  .gatebox h2{margin:0 0 6px;font-size:19px}
+  .gatebox p{margin:0 0 18px;color:var(--mute);font-size:13px}
+  .gatebox input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;
+    font-size:16px;text-align:center;margin-bottom:10px;letter-spacing:.1em}
+  .gatebox input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,120,189,.14)}
+  .gateerr{color:var(--red);font-size:12.5px;min-height:18px;margin-bottom:6px}
+  .gatepub{margin-top:16px;font-size:11px;color:var(--faint)}
+
+  /* settings */
+  .setdlg{width:min(560px,96vw)}
+  .setbody{padding:6px 22px;max-height:66vh;overflow:auto}
+  .setsec{font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.05em;
+    margin:16px 0 9px}
+  .setrow.logorow{display:flex;gap:16px;align-items:center}
+  #setLogoPreview{height:54px;max-width:120px;object-fit:contain;border:1px solid var(--line);
+    border-radius:8px;padding:4px;background:#fff}
+  .setnote{font-size:11.5px;color:var(--faint);margin-top:6px}
+  .setf{display:flex;align-items:center;gap:12px;margin-bottom:9px;font-size:13px}
+  .setf span{width:95px;flex-shrink:0;color:var(--mute)}
+  .setf input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+  .setabout{font-size:13px;color:var(--ink);line-height:1.6}
+
+  /* generate modal */
+  .gendlg{width:min(880px,97vw)}
+  .genmain{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:6px 22px;height:440px}
+  .genform{overflow:auto}
+  .genfolder{display:flex;gap:7px}
+  .genfolder input{flex:1;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:12.5px}
+  #genDate{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+  .genck{display:flex;align-items:center;gap:8px;font-size:13.5px;padding:5px 0;cursor:pointer}
+  .genck input{width:16px;height:16px;accent-color:var(--navy)}
+  .genwarn{color:var(--amber);font-size:12px;margin-top:12px}
+  .genprev{border:1px solid var(--line);border-radius:11px;overflow:hidden;display:flex;flex-direction:column;background:#f7f9fc}
+  .genprev-h{padding:9px 12px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:600;
+    display:flex;align-items:center;gap:8px;color:var(--navy)}
+  .genprev-h select{flex:1;padding:5px 8px;border:1px solid var(--line);border-radius:7px;font-size:12px}
+  .genprev iframe{flex:1;border:0;background:#fff}
+
+  /* liste de dossiers (scan multi-dossiers) */
+  .folderlist{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+  .folderitem{display:flex;align-items:center;gap:8px;background:#f4f7fc;border:1px solid var(--line);
+    border-radius:8px;padding:7px 9px;font-size:12px}
+  .folderitem .fi-ic{width:14px;height:14px;color:var(--gold);flex-shrink:0}
+  .folderitem .fi-nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
+  .folderitem .fi-rm{width:22px;height:22px;border-radius:6px;color:var(--mute);flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:16px}
+  .folderitem .fi-rm:hover{background:#e3e9f3;color:var(--red)}
+  .folderempty{font-size:12px;color:var(--faint);padding:4px 2px}
+  .addfolder{font-size:12.5px;padding:8px}
+
+  /* row selection */
+  td.selcol,th.selcol{width:34px;text-align:center;padding-left:8px;padding-right:8px}
+  .selchk{width:16px;height:16px;accent-color:var(--navy);cursor:pointer}
+  .selbar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:#eaf3ea;
+    border-bottom:1px solid #cfe8cf}
+  .selbar.hidden{display:none}
+  .selbar .selinfo{font-size:13px;font-weight:600;color:var(--green-d)}
+  .selbar .btn{padding:8px 14px}
+
+  .viewer .box{width:min(860px,100%);height:min(92vh,1050px);display:flex;flex-direction:column;
+    border-radius:14px;overflow:hidden;background:#fff}
+  .viewer .vh{background:var(--navy);color:#fff;padding:13px 18px;display:flex;align-items:center;
+    justify-content:space-between;gap:12px}
+  .viewer .vh .vt{font-weight:600;font-size:14px}
+  .viewer .vh .va{display:flex;align-items:center;gap:14px}
+  .viewer .vh a{color:#fff;font-size:12.5px;opacity:.9} .viewer .vh a:hover{opacity:1}
+  .viewer .vh .x{background:rgba(255,255,255,.12);width:28px;height:28px;border-radius:7px;
+    color:#fff;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .viewer iframe{flex:1;border:0;background:#fff}
+
+  @media(max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}
+    .summary{flex-wrap:wrap}.summary .s{min-width:33%}
+  }
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <img src="/api/logo" alt="Logo" id="appLogo">
+  <div class="div"></div>
+  <div class="ttl">Data Collector<small id="appSub">Résidence Belvédère</small></div>
+  <button class="projbtn" id="projBtn" title="Projets">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <span id="projName">Projet</span>
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+  </button>
+  <div class="right">
+    <div class="caps" id="caps"></div>
+    <button class="iconbtn" id="settingsBtn" title="Réglages">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- menu projets -->
+<div class="projmenu" id="projMenu">
+  <button class="pmitem" data-act="new">Nouveau projet…</button>
+  <button class="pmitem" data-act="rename">Renommer le projet…</button>
+  <button class="pmitem" data-act="saveas">Enregistrer sous…</button>
+  <button class="pmitem" data-act="import">Importer un Excel…</button>
+  <div class="pmsep"></div>
+  <div class="pmlabel">Projets récents</div>
+  <div id="pmRecent"></div>
+</div>
+
+<div class="shell">
+  <!-- SIDEBAR: scan controls -->
+  <aside class="side">
+    <div class="field">
+      <label>Dossiers à analyser</label>
+      <div class="folderlist" id="folderList"></div>
+      <input type="hidden" id="root">
+      <button class="btn ghost block addfolder" id="browseBtn">+ Ajouter un dossier</button>
+    </div>
+
+    <label class="check">
+      <input type="checkbox" id="deepScan" checked>
+      <span class="t">Recherche approfondie (OCR)</span>
+    </label>
+
+    <label class="check">
+      <input type="checkbox" id="autoLetters">
+      <span class="t">Générer les lettres automatiquement</span>
+    </label>
+
+    <button class="btn green block" id="scanBtn">Lancer le scan</button>
+
+    <div class="scan" id="scanCard">
+      <h3 id="scanPhase">Statut</h3>
+      <div class="track" id="track"><i id="bar"></i></div>
+      <div class="pcts"><span id="pctL">—</span><span id="pctR">0 %</span></div>
+      <div class="state" id="scanState">En attente du lancement.</div>
+    </div>
+
+    <a href="/excel" class="btn ghost block" style="margin-top:auto">Télécharger l'Excel</a>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="summary" id="summary" style="display:none"></div>
+
+    <div class="panel" id="panel" style="display:none">
+      <div class="controls">
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+          <input type="text" id="q" placeholder="Rechercher un nom, une CIN, un immeuble, une adresse…">
+        </div>
+        <select id="fType"><option value="">Tous les types</option><option>Appartement</option><option>Commerce</option></select>
+        <select id="fStatut"><option value="">Tous les statuts</option><option>Vendu</option><option>À compléter</option><option>Désistement</option></select>
+        <span class="count" id="count"></span>
+      </div>
+      <div class="selbar hidden" id="selBar">
+        <span class="selinfo" id="selInfo">0 sélectionné</span>
+        <button class="btn green" id="genBtn">Générer les lettres</button>
+        <button class="btn ghost" id="selClear">Tout décocher</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr id="head"></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="pager">
+        <div class="pgsize">
+          <span>Afficher</span>
+          <select id="pageSize">
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+            <option value="500">500</option>
+            <option value="all">Tout</option>
+          </select>
+          <span>par page</span>
+        </div>
+        <div class="pgnav" id="pgNav"></div>
+      </div>
+    </div>
+
+    <div class="panel empty" id="emptyState">
+      <svg width="54" height="54" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <h3>Aucune donnée pour l'instant</h3>
+      <p>Choisissez le dossier des ventes à gauche, puis lancez le scan.</p>
+    </div>
+  </main>
+</div>
+
+<!-- RECHECK MODAL -->
+<div class="overlay" id="recheckModal">
+  <div class="dialog">
+    <div class="dh">
+      <h2>Nouveau scan de ce dossier</h2>
+      <p>Des données existent déjà (<span id="existCount">0</span> clients). Comment traiter les informations trouvées&nbsp;?</p>
+    </div>
+    <div class="opts">
+      <div class="opt sel" data-mode="overwrite">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg></div>
+        <div><div class="t">Tout remplacer</div>
+        <div class="d">On repart de zéro : seuls les dossiers listés sont pris en compte.</div></div>
+      </div>
+      <div class="opt" data-mode="fill">
+        <div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg></div>
+        <div><div class="t">Ajouter à l'existant</div>
+        <div class="d">On garde les clients déjà présents et on ajoute / complète avec ce scan.</div></div>
+      </div>
+    </div>
+    <div class="df">
+      <button class="btn ghost" onclick="closeRecheck()">Annuler</button>
+      <button class="btn green" id="recheckGo">Lancer le scan</button>
+    </div>
+  </div>
+</div>
+
+<!-- LETTER VIEWER -->
+<div class="overlay viewer" id="viewer">
+  <div class="box">
+    <div class="vh">
+      <span class="vt" id="vTitle">Lettre</span>
+      <span class="va">
+        <a id="vDocx" href="#" target="_blank">Télécharger Word</a>
+        <button class="x" onclick="closeViewer()" title="Fermer">×</button>
+      </span>
+    </div>
+    <iframe id="vFrame" title="Aperçu de la lettre"></iframe>
+  </div>
+</div>
+
+<!-- CLIENT DETAIL (slide-over) -->
+<div class="overlay detail" id="detail">
+  <div class="drawer">
+    <div class="dhead">
+      <div><div class="dname" id="dName">Client</div><div class="dsub" id="dSub"></div></div>
+      <button class="x" onclick="closeDetail()" title="Fermer">×</button>
+    </div>
+    <div class="dbody" id="dBody"></div>
+  </div>
+</div>
+
+<!-- DOCUMENT VIEWER (fancybox-style, in-app) -->
+<div class="overlay docview" id="docview">
+  <div class="dvbox">
+    <div class="dvhead">
+      <span class="dvtitle" id="dvTitle">Document</span>
+      <span class="dvactions">
+        <button class="dvpath" id="dvCopy" title="Copier le chemin du fichier">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          <span id="dvCopyLabel">Copier le chemin</span>
+        </button>
+        <a class="dvdl" id="dvDl" href="#" title="Télécharger">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+        </a>
+        <button class="x" onclick="closeDocview()" title="Fermer">×</button>
+      </span>
+    </div>
+    <div class="dvpathbar" id="dvPathBar"></div>
+    <iframe id="dvFrame" title="Document"></iframe>
+  </div>
+</div>
+
+<!-- provenance popover (shared) -->
+<div id="provPop" class="provpop"></div>
+
+<!-- FOLDER PICKER (native-style dialog) -->
+<div class="overlay" id="picker">
+  <div class="dialog pickdlg">
+    <div class="dh">
+      <h2>Choisir le dossier des ventes</h2>
+    </div>
+    <div class="pkbar">
+      <button class="pkup" id="pkUp" title="Dossier parent">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m18 15-6-6-6 6"/></svg>
+      </button>
+      <div class="pkpath" id="pkPath"></div>
+    </div>
+    <div class="pkmain">
+      <div class="pkplaces" id="pkPlaces"></div>
+      <div class="pklist" id="pkList"></div>
+    </div>
+    <div class="pksearch">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+      <input type="text" id="pkSearch" placeholder="Rechercher un dossier par son nom…">
+    </div>
+    <div class="df">
+      <button class="btn ghost" onclick="closePicker()">Annuler</button>
+      <button class="btn green" id="pkChoose">Choisir ce dossier</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACCESS GATE (code d'accès) -->
+<div class="gate" id="gate">
+  <div class="gatebox">
+    <img src="/api/logo" alt="Logo" class="gatelogo">
+    <h2 id="gateTitle">Accès protégé</h2>
+    <p id="gateMsg">Entrez votre code d'accès.</p>
+    <input type="password" id="gateCode" inputmode="numeric" placeholder="Code" autocomplete="off">
+    <input type="password" id="gateCode2" placeholder="Confirmer le code" autocomplete="off" style="display:none">
+    <div class="gateerr" id="gateErr"></div>
+    <button class="btn green block" id="gateGo">Entrer</button>
+    <div class="gatepub">Éditeur : Younes Lamnabhi · +212 600622677</div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="overlay" id="settings">
+  <div class="dialog setdlg">
+    <div class="dh"><h2>Réglages</h2></div>
+    <div class="setbody">
+      <div class="setsec">Logo</div>
+      <div class="setrow logorow">
+        <img src="/api/logo" id="setLogoPreview" alt="logo">
+        <div>
+          <button class="btn ghost" id="setLogoPick">Changer le logo…</button>
+          <button class="btn ghost" id="setLogoReset">Logo par défaut</button>
+          <input type="file" id="setLogoFile" accept="image/*" style="display:none">
+          <div class="setnote">Apparaît dans l'application et en-tête des lettres.</div>
+        </div>
+      </div>
+      <div class="setsec">Société (en-tête / pied des lettres)</div>
+      <label class="setf"><span>Nom</span><input type="text" id="coName" placeholder="Romana Immobilier"></label>
+      <label class="setf"><span>Adresse</span><input type="text" id="coAddr" placeholder="Avenue Lalla Meryem, Sala Al Jadida"></label>
+      <label class="setf"><span>Téléphone</span><input type="text" id="coPhone" placeholder="06 66 88 66 20"></label>
+      <label class="setf"><span>Email</span><input type="text" id="coEmail" placeholder="contact@romana.ma"></label>
+      <label class="setf"><span>Mention</span><input type="text" id="coExtra" placeholder="RC / ICE / autre mention"></label>
+      <div class="setsec">Nom des fichiers générés</div>
+      <label class="setf"><span>Modèle</span><input type="text" id="setNaming" placeholder="Lettre_{nom}_{cin}_{ref}"></label>
+      <div class="setnote">Champs : {nom} {cin} {ilot} {imm} {no} {ref} {type}. Laisser vide pour le format par défaut.</div>
+      <div class="setsec">Sécurité</div>
+      <button class="btn ghost" id="setChangeCode">Modifier le code d'accès…</button>
+      <div class="setsec">À propos</div>
+      <div class="setabout">Data Collector — Romana Immobilier<br>
+        Éditeur : <b>Younes Lamnabhi</b> · +212 600622677</div>
+    </div>
+    <div class="df">
+      <button class="btn ghost" onclick="closeSettings()">Fermer</button>
+      <button class="btn green" id="setSave">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATE LETTERS -->
+<div class="overlay" id="genModal">
+  <div class="dialog gendlg">
+    <div class="dh"><h2>Générer les lettres</h2>
+      <p id="genCount">0 client sélectionné</p></div>
+    <div class="genmain">
+      <div class="genform">
+        <div class="setsec">Dossier de destination</div>
+        <div class="genfolder">
+          <input type="text" id="genOut" placeholder="Choisissez un dossier…">
+          <button class="btn ghost" id="genBrowse">Parcourir…</button>
+        </div>
+        <div class="setsec">Format</div>
+        <label class="genck"><input type="checkbox" id="fmtPdf" checked> PDF</label>
+        <label class="genck"><input type="checkbox" id="fmtDocx"> Word (.docx)</label>
+        <div class="setsec">Date du document</div>
+        <input type="text" id="genDate" placeholder="jj/mm/aaaa (laisser vide = date de chaque fiche)">
+        <div class="genwarn" id="genWarn"></div>
+      </div>
+      <div class="genprev">
+        <div class="genprev-h">Aperçu <select id="genPrevSel"></select></div>
+        <iframe id="genPrevFrame" title="Aperçu"></iframe>
+      </div>
+    </div>
+    <div class="df">
+      <button class="btn ghost" onclick="closeGen()">Annuler</button>
+      <button class="btn green" id="genGo">Générer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let CLIENTS=[], ROOT="", sortK="id", sortDir=1, poll=null, recheckMode="overwrite", autoGen=false;
+let pageSize=(function(){const s=localStorage.getItem('bv_pagesize');return s==='all'?'all':(parseInt(s)||100);})();
+let curPage=1;
+
+const COLS=[
+  {k:"_sel",t:"",nosort:true,sel:true},
+  {k:"id",t:"#",cls:"num"},{k:"ilot",t:"Îlot",cls:"num"},{k:"immeuble",t:"Imm."},
+  {k:"numero",t:"N°",cls:"num"},{k:"type_bien",t:"Type"},{k:"etage",t:"Étage"},
+  {k:"nom_prenom",t:"Nom / Prénom"},{k:"cin_str",t:"C.I.N"},{k:"quote_part",t:"Q.P."},
+  {k:"tel",t:"Téléphone"},
+  {k:"prix_total",t:"Prix (DH)",cls:"money"},{k:"avance",t:"Avance",cls:"money"},
+  {k:"reste",t:"Reste",cls:"money"},{k:"date_courrier",t:"Date"},
+  {k:"statut",t:"Statut"},{k:"_docs",t:"Dossier",nosort:true},{k:"_letter",t:"Lettre",nosort:true}
+];
+let SELECTED=new Set();
+
+/* ---- capabilities ---- */
+async function loadCaps(){
+  const c=await (await fetch('/api/capabilities')).json();
+  const ocrName=c.ocr_engine==='vision'?'OCR (Apple Vision)'
+               :c.ocr_engine==='tesseract'?'OCR (Tesseract)':'OCR';
+  const ocrTip=c.ocr_engine==='vision'
+    ?"Lecture des documents scannés (CIN, reçus…) par le moteur intégré de macOS. Aucune installation."
+    :c.ocr_engine==='tesseract'
+    ?"Lecture des documents scannés par Tesseract."
+    :"Lecture des documents scannés (images). Optionnel. Sur macOS, c'est automatique.";
+  const meta=[
+    ['doc','Word',"Lecture des fiches Word .doc"],
+    ['docx','.docx',"Lecture et remplissage des documents .docx"],
+    ['xlsx','Excel',"Lecture et export Excel"],
+    ['pdf_text','PDF',"Lecture des PDF contenant du texte"],
+    ['pdf_ocr',ocrName,ocrTip],
+  ];
+  $('#caps').innerHTML=meta.map(([k,l,tip])=>{
+    const on=c[k];
+    const t=on?('Actif — '+tip):('Indisponible — '+tip);
+    return `<span class="cap ${on?'on':'off'}" title="${esc(t)}"><b></b>${l}</span>`;
+  }).join('');
+}
+
+/* ---- state polling ---- */
+async function tick(){
+  const s=await (await fetch('/api/state')).json();
+  if(!$('#root').value) $('#root').value=s.root||'';
+  ROOT=s.root||ROOT;
+  const bar=$('#bar'),track=$('#track');
+  bar.style.width=(s.pct||0)+'%'; $('#pctR').textContent=(s.pct||0)+' %';
+  if(s.status==='running'){
+    track.classList.remove('done');
+    $('#scanPhase').textContent=s.phase==='letters'?'Génération des lettres':'Analyse du dossier';
+    $('#pctL').textContent=s.phase==='letters'?'Lettres':'Lecture';
+    $('#scanState').innerHTML='<span class="pulse"></span>'+esc(s.msg);
+    $('#scanBtn').disabled=true; $('#scanBtn').textContent='Scan en cours…';
+    if(!poll) poll=setInterval(tick,650);
+  }else{
+    $('#scanBtn').disabled=false; $('#scanBtn').textContent='Lancer le scan';
+    if(poll){clearInterval(poll);poll=null;}
+    if(s.status==='done'){
+      track.classList.add('done'); $('#scanPhase').textContent='Scan terminé';
+      $('#pctL').textContent='Terminé'; $('#scanState').textContent=s.msg;
+      await loadClients();
+    }else if(s.status==='error'){
+      $('#scanPhase').textContent='Erreur'; $('#scanState').textContent=s.msg;
+    }
+  }
+}
+
+async function loadClients(){
+  const d=await (await fetch('/api/clients')).json();
+  CLIENTS=d.clients||[]; ROOT=d.root;
+  if(CLIENTS.length){
+    $('#emptyState').style.display='none';
+    $('#summary').style.display=''; $('#panel').style.display='';
+    renderSummary(); buildHead(); render();
+  }
+}
+
+function renderSummary(){
+  const t=CLIENTS.length, v=CLIENTS.filter(c=>c.statut==='Vendu').length,
+    todo=CLIENTS.filter(c=>c.statut==='À compléter').length,
+    des=CLIENTS.filter(c=>c.statut==='Désistement').length,
+    app=CLIENTS.filter(c=>c.type_bien==='Appartement').length,
+    com=CLIENTS.filter(c=>c.type_bien==='Commerce').length;
+  // Deux groupes distincts pour éviter toute confusion :
+  //  - total des biens ; par statut (vendu / désistement / à compléter)
+  //  - répartition par type (appartements + commerces = total)
+  const cards=[
+    ['sel',t,'Biens au total'],
+    ['ok',v,'Vendus'],
+    ...(des?[['des',des,'Désistements']]:[]),
+    ...(todo?[['wait',todo,'À compléter']]:[]),
+    ['sep',app,'dont Appartements'],
+    ['',com,'dont Commerces'],
+  ];
+  $('#summary').innerHTML=cards.map(([c,n,l])=>
+    `<div class="s ${c}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+}
+
+function buildHead(){
+  $('#head').innerHTML=COLS.map(c=>{
+    if(c.sel) return `<th class="selcol"><input type="checkbox" class="selchk" id="selAll"></th>`;
+    const sorted=sortK===c.k;
+    const glyph=sorted?(sortDir>0
+      ?'<svg width="8" height="8" viewBox="0 0 10 10"><path d="M5 2 1 8h8z" fill="currentColor"/></svg>'
+      :'<svg width="8" height="8" viewBox="0 0 10 10"><path d="M5 8 1 2h8z" fill="currentColor"/></svg>')
+      :'<svg width="8" height="8" viewBox="0 0 10 10" opacity=".4"><path d="M5 1 2 4h6z" fill="currentColor"/><path d="M5 9 2 6h6z" fill="currentColor"/></svg>';
+    const ar=c.nosort?'':`<span class="ar">${glyph}</span>`;
+    return `<th data-k="${c.k}" class="${sorted?'sorted':''}" ${c.nosort?'style="cursor:default"':''}>${c.t}${ar}</th>`;
+  }).join('');
+  $('#head').querySelectorAll('th[data-k]').forEach(th=>{
+    const k=th.dataset.k; if(COLS.find(c=>c.k===k).nosort)return;
+    th.onclick=()=>{ if(sortK===k)sortDir*=-1; else{sortK=k;sortDir=1;} buildHead(); render(); };
+  });
+  const sa=$('#selAll'); if(sa) sa.onclick=()=>{ toggleSelectAllVisible(sa.checked); };
+}
+
+function pill(s){
+  if(s==='Vendu')return '<span class="pill vendu">Vendu</span>';
+  if(s==='Désistement')return '<span class="pill desist">Désistement</span>';
+  if(s==='À compléter')return '<span class="pill todo">À compléter</span>';
+  return esc(s||'—');
+}
+
+const EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+const GEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 18v-6M9 15h6"/></svg>';
+function letterCell(c){
+  // Deux icônes qui font la même chose : ouvrir la lettre. Si en cache récent,
+  // on l'affiche ; sinon on la génère puis on l'ouvre.
+  const ready=!!c.letter_html;
+  const cls=ready?'ready':'gen';
+  const label=ready?'Voir':'Générer';
+  return `<button class="letter-btn ${cls}" data-id="${c.id}" title="${ready?'Voir la lettre':'Générer et voir la lettre'}">
+    <span class="lbico">${ready?EYE:GEN}</span><span>${label}</span></button>`;
+}
+
+function docsCell(c){
+  const n=(c.documents||[]).length;
+  const enriched=c.naissance||c.pere||c.recu_num;
+  const badge=enriched?'<span class="dot-enriched" title="Données enrichies par OCR"></span>':'';
+  if(!n) return '<span class="muted-dash">—</span>';
+  return `<button class="docs-btn" data-id="${c.id}">${badge}${n} pièce${n>1?'s':''}</button>`;
+}
+
+// Chaque acquéreur sur sa propre ligne (nom / CIN / quote-part alignés).
+function owners(c){
+  const noms=c.noms&&c.noms.length?c.noms:(c.nom_prenom?[c.nom_prenom]:[]);
+  const cins=c.cin||[], qps=c.quote_part||[];
+  return noms.map((n,i)=>({nom:n, cin:cins[i]||'', qp:qps[i]||(qps.length===1&&noms.length===1?qps[0]:'')}));
+}
+function nameCell(c){
+  if(!c.nom_prenom) return '<span class="todo-name">à compléter</span>'
+    +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
+  const os=owners(c);
+  if(os.length<=1) return `<b>${esc(c.nom_prenom)}</b>`
+    +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
+  return os.map(o=>`<div class="owln"><b>${esc(o.nom)}</b></div>`).join('')
+    +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
+}
+function cinCell(c){
+  const os=owners(c);
+  if(os.length<=1) return esc(c.cin_str)||'—';
+  return os.map(o=>`<div class="owln">${esc(o.cin)||'—'}</div>`).join('');
+}
+function qpCell(c){
+  const os=owners(c);
+  if(os.length<=1) return esc((c.quote_part||[]).join(' / '))||'—';
+  return os.map(o=>`<div class="owln">${esc(o.qp)?o.qp+'%':'—'}</div>`).join('');
+}
+
+function filteredSorted(){
+  const q=$('#q').value.trim().toLowerCase(), ft=$('#fType').value, fs=$('#fStatut').value;
+  let rows=CLIENTS.filter(c=>{
+    if(ft&&c.type_bien!==ft)return false;
+    if(fs&&c.statut!==fs)return false;
+    if(!q)return true;
+    return [c.nom_prenom,c.cin_str,c.immeuble,c.adresse1,c.tel,c.numero,c.ilot]
+      .join(' ').toLowerCase().includes(q);
+  });
+  rows.sort((a,b)=>{
+    let x=a[sortK],y=b[sortK];
+    if(['id','numero','ilot'].includes(sortK)||sortK==='prix_total'||sortK==='avance'||sortK==='reste'){
+      x=+String(x).replace(/\D/g,'')||0;y=+String(y).replace(/\D/g,'')||0;
+    } else {x=(''+(x??'')).toLowerCase();y=(''+(y??'')).toLowerCase();}
+    return (x<y?-1:x>y?1:0)*sortDir;
+  });
+  return rows;
+}
+
+function render(){
+  const rows=filteredSorted();
+  const total=rows.length;
+  // Pagination
+  let start=0, end=total, pages=1;
+  if(pageSize!=='all'){
+    pages=Math.max(1,Math.ceil(total/pageSize));
+    if(curPage>pages)curPage=pages;
+    start=(curPage-1)*pageSize; end=Math.min(total,start+pageSize);
+  }
+  const view=rows.slice(start,end);
+  $('#count').textContent=total?`${start+1}–${end} sur ${total}`:`0 sur ${CLIENTS.length}`;
+  const tb=$('#tbody');
+  if(!view.length){tb.innerHTML=`<tr><td colspan="${COLS.length}" class="empty" style="padding:40px">Aucun résultat.</td></tr>`;renderPager(total,pages);return;}
+  tb.innerHTML=view.map(c=>{
+    const multi=owners(c).length>1?' multi':'';
+    const chk=SELECTED.has(c.id)?'checked':'';
+    return `<tr class="${multi?'multirow':''}${SELECTED.has(c.id)?' selrow':''}">
+    <td class="selcol"><input type="checkbox" class="selchk rowchk" data-id="${c.id}" ${chk}></td>
+    <td class="num">${c.id}</td><td class="num">${esc(c.ilot)}</td><td>${esc(c.immeuble)}</td>
+    <td class="num">${esc(c.numero)}</td><td class="ttype">${esc(c.type_bien)}</td><td>${esc(c.etage)||'—'}</td>
+    <td class="name">${nameCell(c)}</td>
+    <td class="cin">${cinCell(c)}</td>
+    <td class="qp num">${qpCell(c)}</td>
+    <td class="tel">${esc(c.tel)||'—'}</td>
+    <td class="money num">${esc(c.prix_total)||'—'}</td>
+    <td class="money num">${esc(c.avance)||'—'}</td>
+    <td class="money num">${esc(c.reste)||'—'}</td>
+    <td class="num">${esc(c.date_courrier)||'—'}</td>
+    <td>${pill(c.statut)}</td>
+    <td>${docsCell(c)}</td>
+    <td>${letterCell(c)}</td>
+  </tr>`;}).join('');
+  tb.querySelectorAll('.letter-btn').forEach(b=>{ b.onclick=()=>openLetterSmart(+b.dataset.id,b); });
+  tb.querySelectorAll('.docs-btn').forEach(b=>{ b.onclick=()=>openDetail(+b.dataset.id); });
+  tb.querySelectorAll('.rowchk').forEach(b=>{ b.onclick=()=>{
+    const id=+b.dataset.id; if(b.checked)SELECTED.add(id); else SELECTED.delete(id);
+    b.closest('tr').classList.toggle('selrow',b.checked); updateSelBar();
+  };});
+  renderPager(total,pages);
+}
+
+function toggleSelectAllVisible(on){
+  filteredSorted().forEach(c=>{ if(on)SELECTED.add(c.id); else SELECTED.delete(c.id); });
+  render(); updateSelBar();
+}
+function updateSelBar(){
+  const n=SELECTED.size;
+  $('#selBar').classList.toggle('hidden', n===0);
+  $('#selInfo').textContent = n+' bien'+(n>1?'s':'')+' sélectionné'+(n>1?'s':'');
+}
+
+function renderPager(total,pages){
+  if(pageSize==='all'||pages<=1){ $('#pgNav').innerHTML=''; return; }
+  const btn=(p,label,dis,cur)=>`<button class="pgb${cur?' cur':''}" ${dis?'disabled':''} data-p="${p}">${label||p}</button>`;
+  let nav=btn(curPage-1,'‹',curPage<=1);
+  const win=[];
+  for(let p=1;p<=pages;p++){ if(p===1||p===pages||Math.abs(p-curPage)<=2)win.push(p); }
+  let last=0;
+  win.forEach(p=>{ if(p-last>1)nav+='<span class="pgdots">…</span>'; nav+=btn(p,'',false,p===curPage); last=p; });
+  nav+=btn(curPage+1,'›',curPage>=pages);
+  $('#pgNav').innerHTML=nav;
+  $('#pgNav').querySelectorAll('.pgb').forEach(b=>b.onclick=()=>{curPage=+b.dataset.p;render();});
+}
+
+// Vue et génération font la même chose : ouvrir la lettre. Si déjà en cache
+// (à jour), on ouvre directement ; sinon on génère puis on ouvre.
+async function openLetterSmart(id,btn){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  if(c.letter_html){ viewLetter(id); return; }
+  const prev=btn?btn.innerHTML:'';
+  if(btn){btn.classList.add('busy');btn.innerHTML='<span class="spin"></span><span>Création…</span>';}
+  try{
+    const r=await (await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id})})).json();
+    if(r&&r.ok){ c.letter_html=r.letter_html; c.letter_docx=r.letter_docx; viewLetter(id); }
+  }finally{ render(); }
+}
+
+function viewLetter(id){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  $('#vTitle').textContent='Lettre — '+(c.nom_prenom||`Îlot ${c.ilot} · ${c.immeuble}${c.numero}`);
+  $('#vFrame').src='/letter/'+id+'?t='+Date.now();
+  const dx=$('#vDocx');
+  if(c.letter_docx){dx.style.display='';dx.href='/file?dl=1&p='+encodeURIComponent(c.letter_docx);}
+  else dx.style.display='none';
+  $('#viewer').classList.add('open');
+}
+function closeViewer(){$('#viewer').classList.remove('open');$('#vFrame').src='about:blank';}
+
+/* ---- client detail (documents + données enrichies) ---- */
+const DOC_LABELS={fiche_notaire:'Fiche notaire',fiche_compta:'Fiche comptabilité',
+  cin:'Carte nationale (CIN)',cheque:'Chèque',recu:'Reçu',virement:'Virement',
+  decharge:'Décharge',scan:'Scan',autre:'Document'};
+function srcLabel(rel){
+  if(rel==='(dossier)') return 'Nom du dossier';
+  const base=rel.split('/').pop();
+  const t=classifyName(base);
+  return (DOC_LABELS[t]||base)+' — '+base;
+}
+function classifyName(n){
+  n=n.toLowerCase();
+  if(n.includes('notaire'))return'fiche_notaire';
+  if(n.includes('comptabil'))return'fiche_compta';
+  if(n.includes('cin')||n.includes('identit'))return'cin';
+  if(n.includes('cheq')||n.includes('chèq')||n.includes('chéq'))return'cheque';
+  if(n.includes('recu')||n.includes('reçu'))return'recu';
+  if(n.includes('vir'))return'virement';
+  return'scan';
+}
+function infoIcon(field,prov){
+  const srcs=(prov&&prov[field])||[];
+  if(!srcs.length) return '';
+  const n=srcs.length;
+  const title=n>1?`Confirmé par ${n} sources`:'Source de la donnée';
+  const data=encodeURIComponent(JSON.stringify(srcs));
+  return `<button class="finfo${n>1?' multi':''}" data-srcs="${data}" title="${title}" aria-label="${title}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>${n>1?`<span class="cnt">${n}</span>`:''}</button>`;
+}
+function openDetail(id){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  const prov=c.provenance||{};
+  $('#dName').textContent=c.nom_prenom||`Îlot ${c.ilot} · ${c.immeuble}${c.numero}`;
+  $('#dSub').textContent=`Îlot ${c.ilot} · Immeuble ${c.immeuble} · ${c.type_bien} N° ${c.numero}`;
+  const rows=[];
+  const add=(l,v,field)=>{ if(v) rows.push(
+    `<div class="frow"><span class="fl">${l}</span>
+     <span class="fv">${esc(v)}${field?infoIcon(field,prov):''}</span></div>`); };
+  add('C.I.N',c.cin_str,'cin');
+  if(c.cin_verifiee && c.cin_verifiee!==c.cin_str) add('C.I.N vérifiée (scan)',c.cin_verifiee,'cin_verifiee');
+  add('Quote-part',(c.quote_part||[]).join(' / '),'quote_part');
+  add('Date de naissance',c.naissance,'naissance');
+  add('C.I.N valable jusqu\'au',c.cin_validite,'cin_validite');
+  add('Père',c.pere,'pere'); add('Mère',c.mere,'mere');
+  add('Téléphone',c.tel,'tel'); add('Adresse',c.adresse1,'adresse1');
+  add('Superficie',c.superficie,'superficie');
+  add('Prix total',c.prix_total?c.prix_total+' DH':'','prix_total');
+  add('Avance',c.avance?c.avance+' DH':'','avance');
+  add('Reste à payer',c.reste?c.reste+' DH':'','reste');
+  add('N° de reçu',c.recu_num,'recu_num'); add('Montant du reçu',c.recu_montant,'recu_montant');
+  add('Date du reçu',c.recu_date,'recu_date'); add('Date fiche',c.date_courrier,'date_courrier');
+  const docs=(c.documents||[]).map(d=>{
+    const label=DOC_LABELS[d.type]||d.name;
+    return `<button class="docfile" data-rel="${encodeURIComponent(d.rel)}" data-label="${esc(label)}">
+      <span class="dfi">${docIcon(d.type)}</span>
+      <span class="dft"><b>${esc(label)}</b><small>${esc(d.name)}</small></span>
+      <span class="dfopen">Ouvrir</span></button>`;
+  }).join('');
+  const enrichedNote=(c.naissance||c.pere||c.recu_num)
+    ?'<div class="enriched-badge">Certaines données sont lues sur les documents scannés. L\'icône d\'information indique leur provenance.</div>':'';
+  $('#dBody').innerHTML=`
+    ${enrichedNote}
+    <div class="fsec">Informations</div>
+    <div class="fields">${rows.join('')||'<div class="fl">Aucune donnée.</div>'}</div>
+    <div class="fsec">Pièces du dossier (${(c.documents||[]).length})</div>
+    <div class="doclist">${docs||'<div class="fl">Aucune pièce.</div>'}</div>`;
+  $('#dBody').querySelectorAll('.docfile').forEach(b=>{
+    b.onclick=()=>openDocview(decodeURIComponent(b.dataset.rel),b.dataset.label);
+  });
+  $('#dBody').querySelectorAll('.finfo').forEach(b=>{
+    b.onclick=e=>{e.stopPropagation();showProv(b);};
+  });
+  $('#detail').classList.add('open');
+}
+function docIcon(type){
+  if(type==='cin') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M13 9h5M13 13h5M5 16h8"/></svg>';
+  if(type==='cheque'||type==='virement') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20M6 15h4"/></svg>';
+  if(type==='recu') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 3v18l2-1 2 1 2-1 2 1 2-1 2 1V3l-2 1-2-1-2 1-2-1-2 1z"/><path d="M8 8h8M8 12h8"/></svg>';
+  if(type==='fiche_notaire'||type==='fiche_compta') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+}
+function closeDetail(){$('#detail').classList.remove('open');}
+
+/* ---- in-app document viewer (fancybox-style) ---- */
+let dvRel="";
+function openDocview(rel,label){
+  dvRel=rel;
+  $('#dvTitle').textContent=label||rel.split('/').pop();
+  $('#dvPathBar').textContent=ROOT.replace(/\/$/,'')+'/'+rel;
+  const ext=rel.split('.').pop().toLowerCase();
+  const url='/file?p='+encodeURIComponent(rel);
+  const frame=$('#dvFrame');
+  frame.removeAttribute('srcdoc'); frame.style.display='';
+  $('#dvDl').href='/file?dl=1&p='+encodeURIComponent(rel);
+  if(['pdf','png','jpg','jpeg','gif','webp','tif','tiff'].includes(ext)){
+    frame.src=url;                                   // affichage direct
+  } else if(['doc','docx','rtf','txt'].includes(ext)){
+    frame.src='about:blank';
+    frame.srcdoc='<div style="font-family:sans-serif;padding:40px;text-align:center;color:#888">Lecture du document…</div>';
+    fetch('/api/doc_preview?p='+encodeURIComponent(rel))
+      .then(r=>r.text()).then(html=>{ frame.removeAttribute('src'); frame.srcdoc=html; })
+      .catch(()=>{ frame.srcdoc=`<div style="font-family:sans-serif;padding:40px;text-align:center;color:#555"><p>Aperçu indisponible.</p><p><a href="${url}" download>Télécharger le document</a></p></div>`; });
+  } else {
+    frame.src='about:blank';
+    frame.srcdoc=`<div style="font-family:sans-serif;padding:40px;text-align:center;color:#555"><p>Ce type de fichier ne s'affiche pas directement.</p><p><a href="${url}" download>Télécharger</a></p></div>`;
+  }
+  $('#docview').classList.add('open');
+}
+function closeDocview(){$('#docview').classList.remove('open');$('#dvFrame').src='about:blank';$('#dvFrame').removeAttribute('srcdoc');}
+$('#dvCopy').onclick=async()=>{
+  const full=ROOT.replace(/\/$/,'')+'/'+dvRel;
+  try{ await navigator.clipboard.writeText(full);
+    $('#dvCopyLabel').textContent='Chemin copié'; setTimeout(()=>$('#dvCopyLabel').textContent='Copier le chemin',1500);
+  }catch(e){ prompt('Chemin du fichier :', full); }
+};
+
+/* ---- provenance popover ---- */
+function showProv(btn){
+  const srcs=JSON.parse(decodeURIComponent(btn.dataset.srcs));
+  const pop=$('#provPop');
+  const head=srcs.length>1
+    ?`<div class="pph">Donnée confirmée par ${srcs.length} sources :</div>`
+    :`<div class="pph">Provenance de la donnée :</div>`;
+  pop.innerHTML=head+srcs.map(s=>{
+    if(s==='(dossier)') return `<div class="ppitem"><span>Déduit du nom du dossier</span></div>`;
+    const base=s.split('/').pop();
+    return `<div class="ppitem">
+      <button class="ppopen" data-rel="${encodeURIComponent(s)}">${esc(srcLabel(s))}</button>
+      <button class="ppcopy" data-full="${esc(ROOT.replace(/\/$/,'')+'/'+s)}" title="Copier le chemin">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button>
+    </div>`;
+  }).join('');
+  const r=btn.getBoundingClientRect();
+  pop.style.display='block';
+  let top=r.bottom+6, left=Math.min(r.left, window.innerWidth-pop.offsetWidth-14);
+  if(top+pop.offsetHeight>window.innerHeight) top=r.top-pop.offsetHeight-6;
+  pop.style.top=top+'px'; pop.style.left=Math.max(10,left)+'px';
+  pop.querySelectorAll('.ppopen').forEach(b=>b.onclick=()=>{hideProv();openDocview(decodeURIComponent(b.dataset.rel));});
+  pop.querySelectorAll('.ppcopy').forEach(b=>b.onclick=async()=>{
+    try{await navigator.clipboard.writeText(b.dataset.full);b.classList.add('ok');setTimeout(()=>b.classList.remove('ok'),1200);}
+    catch(e){prompt('Chemin :',b.dataset.full);}
+  });
+}
+function hideProv(){$('#provPop').style.display='none';}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.finfo')&&!e.target.closest('#provPop')) hideProv();
+});
+
+/* ---- scan trigger (with recheck modal when data exists) ---- */
+$('#scanBtn').onclick=()=>{
+  autoGen=$('#autoLetters').checked;
+  if(CLIENTS.length){ $('#existCount').textContent=CLIENTS.length; $('#recheckModal').classList.add('open'); }
+  else startScan('overwrite');
+};
+$('#recheckModal').querySelectorAll('.opt').forEach(o=>{
+  o.onclick=()=>{$('#recheckModal').querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
+    o.classList.add('sel'); recheckMode=o.dataset.mode;};
+});
+$('#recheckGo').onclick=()=>{closeRecheck();startScan(recheckMode);};
+function closeRecheck(){$('#recheckModal').classList.remove('open');}
+
+async function startScan(mode){
+  if(!FOLDERS.length){ $('#scanState').textContent='Ajoutez au moins un dossier.'; return; }
+  const deep=$('#deepScan').checked;
+  const r=await (await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({folders:FOLDERS,mode,auto_letters:autoGen,deep})})).json();
+  if(!r.ok){$('#scanPhase').textContent='Erreur';$('#scanState').textContent=(r.error||'Impossible de lancer le scan');return;}
+  $('#scanState').innerHTML='<span class="pulse"></span>Initialisation…';
+  tick();
+}
+
+/* ---- dossiers du projet (scan multi-dossiers) ---- */
+let FOLDERS=[];
+function renderFolders(){
+  const el=$('#folderList');
+  if(!FOLDERS.length){ el.innerHTML='<div class="folderempty">Aucun dossier. Cliquez « Ajouter un dossier ».</div>'; return; }
+  el.innerHTML=FOLDERS.map((f,i)=>`<div class="folderitem" title="${esc(f)}">
+    <svg class="fi-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <span class="fi-nm">${esc(f)}</span>
+    <button class="fi-rm" data-i="${i}" title="Retirer">×</button></div>`).join('');
+  el.querySelectorAll('.fi-rm').forEach(b=>b.onclick=()=>{ FOLDERS.splice(+b.dataset.i,1); renderFolders(); });
+}
+function addFolder(path){ if(path&&!FOLDERS.includes(path)){ FOLDERS.push(path); renderFolders(); } }
+async function loadFolders(){
+  try{ const d=await (await fetch('/api/folders')).json(); FOLDERS=d.folders||[]; }catch(e){ FOLDERS=[]; }
+  renderFolders();
+}
+
+/* ---- sélecteur de dossier (style natif) ---- */
+const FOLDER_SVG='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+let pkCurrent="";
+$('#browseBtn').onclick=()=>{ pickFolderThen(dir=>addFolder(dir)); };
+function closePicker(){ $('#picker').classList.remove('open'); }
+$('#picker').onclick=e=>{ if(e.target.id==='picker')closePicker(); };
+
+async function pkBrowse(path){
+  const d=await (await fetch('/api/browse?path='+encodeURIComponent(path||''))).json();
+  pkCurrent=d.path;
+  $('#pkPath').textContent=d.path;
+  $('#pkUp').dataset.p=d.parent;
+  if(d.shortcuts){
+    $('#pkPlaces').innerHTML='<div class="pkpl-h">Emplacements</div>'+d.shortcuts.map(s=>
+      `<button class="pkplace${s.path===d.path?' cur':''}" data-p="${encodeURIComponent(s.path)}">
+        ${FOLDER_SVG}<span>${esc(s.label)}</span></button>`).join('');
+    $('#pkPlaces').querySelectorAll('.pkplace').forEach(b=>b.onclick=()=>pkBrowse(decodeURIComponent(b.dataset.p)));
+  }
+  if(!d.dirs.length){
+    $('#pkList').innerHTML='<div class="pkempty">Ce dossier ne contient pas de sous-dossier.<br>Vous pouvez le choisir tel quel.</div>';
+  } else {
+    $('#pkList').innerHTML=d.dirs.map(x=>
+      `<button class="pkitem" data-p="${encodeURIComponent(x.path)}">
+        ${FOLDER_SVG}<span class="pknm">${esc(x.name)}</span>
+        <span class="pkgo">›</span></button>`).join('');
+    $('#pkList').querySelectorAll('.pkitem').forEach(b=>b.onclick=()=>pkBrowse(decodeURIComponent(b.dataset.p)));
+  }
+}
+$('#pkUp').onclick=()=>pkBrowse($('#pkUp').dataset.p);
+$('#pkChoose').onclick=()=>{ $('#root').value=pkCurrent; closePicker(); };
+
+let pkSearchTimer=null;
+$('#pkSearch').addEventListener('input',e=>{
+  clearTimeout(pkSearchTimer);
+  const term=e.target.value.trim();
+  if(term.length<2){ pkBrowse(pkCurrent); return; }
+  pkSearchTimer=setTimeout(async()=>{
+    $('#pkList').innerHTML='<div class="pkempty">Recherche…</div>';
+    const d=await (await fetch('/api/find_folders?q='+encodeURIComponent(term))).json();
+    if(!d.results.length){ $('#pkList').innerHTML='<div class="pkempty">Aucun dossier trouvé.</div>'; return; }
+    const re=new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+    $('#pkList').innerHTML=d.results.map(x=>{
+      const name=esc(x.name).replace(re,'<b>$1</b>');
+      return `<button class="pkitem res" data-p="${encodeURIComponent(x.path)}">
+        ${FOLDER_SVG}<span class="pknm">${name}<small>${esc(x.path)}</small></span></button>`;
+    }).join('');
+    $('#pkList').querySelectorAll('.pkitem').forEach(b=>b.onclick=()=>pkBrowse(decodeURIComponent(b.dataset.p)));
+  },280);
+});
+
+/* ---- filters ---- */
+['#q','#fType','#fStatut'].forEach(s=>$(s).addEventListener('input',()=>{curPage=1;render();}));
+['#fType','#fStatut'].forEach(s=>$(s).addEventListener('change',()=>{curPage=1;render();}));
+// taille de page (mémorisée)
+$('#pageSize').value=String(pageSize);
+$('#pageSize').addEventListener('change',e=>{
+  const v=e.target.value; pageSize=v==='all'?'all':parseInt(v); curPage=1;
+  localStorage.setItem('bv_pagesize',String(pageSize));
+  fetch('/api/setting',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({key:'page_size',value:pageSize})}).catch(()=>{});
+  render();
+});
+$('#viewer').onclick=e=>{if(e.target.id==='viewer')closeViewer();};
+$('#recheckModal').onclick=e=>{if(e.target.id==='recheckModal')closeRecheck();};
+$('#detail').onclick=e=>{if(e.target.id==='detail')closeDetail();};
+$('#docview').onclick=e=>{if(e.target.id==='docview')closeDocview();};
+document.onkeydown=e=>{if(e.key==='Escape'){hideProv();if($('#picker').classList.contains('open'))closePicker();else if($('#docview').classList.contains('open'))closeDocview();else{closeViewer();closeRecheck();closeDetail();}}};
+
+/* ===================== PROJETS ===================== */
+async function loadProject(){
+  const d=await (await fetch('/api/project')).json();
+  $('#projName').textContent=d.current.name;
+  const rec=d.recent.filter(r=>r.path!==d.current.path);
+  $('#pmRecent').innerHTML=(rec.length?rec:[]).map(r=>
+    `<button class="pmrecent" data-path="${encodeURIComponent(r.path)}">${esc(r.name)}</button>`).join('')
+    || '<div class="setnote" style="padding:4px 11px">Aucun autre projet.</div>';
+  $('#pmRecent').querySelectorAll('.pmrecent').forEach(b=>b.onclick=()=>openProject(decodeURIComponent(b.dataset.path)));
+}
+$('#projBtn').onclick=e=>{e.stopPropagation();$('#projMenu').classList.toggle('open');};
+document.addEventListener('click',e=>{ if(!e.target.closest('#projMenu')&&!e.target.closest('#projBtn'))$('#projMenu').classList.remove('open'); });
+$('#projMenu').querySelectorAll('.pmitem').forEach(b=>b.onclick=()=>{ $('#projMenu').classList.remove('open'); projAction(b.dataset.act); });
+async function projAction(act){
+  if(act==='new'){
+    const name=prompt('Nom du nouveau projet :','Projet '+new Date().toLocaleDateString('fr-FR'));
+    if(name===null)return;
+    await fetch('/api/project_new',{method:'POST',headers:H,body:JSON.stringify({name})});
+    SELECTED.clear(); updateSelBar(); await loadProject(); location.reload();
+  } else if(act==='rename'){
+    const name=prompt('Nouveau nom du projet :',$('#projName').textContent);
+    if(!name)return;
+    await fetch('/api/project_rename',{method:'POST',headers:H,body:JSON.stringify({name})});
+    loadProject();
+  } else if(act==='saveas'){
+    openSaveAs();
+  } else if(act==='import'){
+    openImport();
+  }
+}
+async function openProject(path){
+  await fetch('/api/project_open',{method:'POST',headers:H,body:JSON.stringify({path})});
+  SELECTED.clear(); location.reload();
+}
+const H={'Content-Type':'application/json'};
+
+// Enregistrer sous : réutilise le sélecteur de dossier puis demande un nom.
+function openSaveAs(){
+  pickFolderThen(async(dir)=>{
+    const name=prompt('Nom du projet (fichier) :',$('#projName').textContent);
+    if(!name)return;
+    const path=dir.replace(/\/$/,'')+'/'+name.replace(/[^\w\s().-]/g,'')+'.db';
+    await fetch('/api/project_saveas',{method:'POST',headers:H,body:JSON.stringify({path})});
+    loadProject(); toast('Projet enregistré.');
+  });
+}
+
+/* ===================== CODE D'ACCÈS ===================== */
+let gateMode='enter';
+async function initGate(){
+  const d=await (await fetch('/api/access_status')).json();
+  if(!d.has_code){
+    gateMode='create';
+    $('#gateTitle').textContent='Bienvenue';
+    $('#gateMsg').textContent='Créez un code d\'accès pour protéger vos données.';
+    $('#gateCode2').style.display='';
+    $('#gateGo').textContent='Créer le code';
+    $('#gate').classList.add('open'); $('#gateCode').focus();
+  } else {
+    gateMode='enter';
+    $('#gate').classList.add('open'); $('#gateCode').focus();
+  }
+}
+$('#gateGo').onclick=submitGate;
+$('#gateCode').addEventListener('keydown',e=>{if(e.key==='Enter')submitGate();});
+$('#gateCode2').addEventListener('keydown',e=>{if(e.key==='Enter')submitGate();});
+async function submitGate(){
+  const code=$('#gateCode').value.trim();
+  $('#gateErr').textContent='';
+  if(gateMode==='create'){
+    if(code.length<4){$('#gateErr').textContent='4 caractères minimum.';return;}
+    if(code!==$('#gateCode2').value.trim()){$('#gateErr').textContent='Les deux codes ne correspondent pas.';return;}
+    await fetch('/api/access_set',{method:'POST',headers:H,body:JSON.stringify({code})});
+    enterApp();
+  } else {
+    const r=await (await fetch('/api/access_check',{method:'POST',headers:H,body:JSON.stringify({code})})).json();
+    if(r.ok) enterApp(); else {$('#gateErr').textContent='Code incorrect.';$('#gateCode').value='';$('#gateCode').focus();}
+  }
+}
+function enterApp(){ $('#gate').classList.remove('open'); loadCaps(); loadProject(); loadFolders(); tick(); }
+
+/* ===================== RÉGLAGES ===================== */
+$('#settingsBtn').onclick=openSettings;
+async function openSettings(){
+  const s=await (await fetch('/api/settings_all')).json();
+  const c=s.company||{};
+  $('#coName').value=c.name||''; $('#coAddr').value=c.address||'';
+  $('#coPhone').value=c.phone||''; $('#coEmail').value=c.email||''; $('#coExtra').value=c.extra||'';
+  $('#setNaming').value=s.naming||'';
+  $('#setLogoPreview').src='/api/logo?t='+Date.now();
+  $('#settings').classList.add('open');
+}
+function closeSettings(){$('#settings').classList.remove('open');}
+$('#settings').onclick=e=>{if(e.target.id==='settings')closeSettings();};
+let newLogoData=null;
+$('#setLogoPick').onclick=()=>$('#setLogoFile').click();
+$('#setLogoFile').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const r=new FileReader(); r.onload=()=>{ newLogoData=r.result; $('#setLogoPreview').src=r.result; }; r.readAsDataURL(f);
+});
+$('#setLogoReset').onclick=()=>{ newLogoData=''; $('#setLogoPreview').src='/static/logo.png'; };
+$('#setSave').onclick=async()=>{
+  const body={company:{name:$('#coName').value,address:$('#coAddr').value,phone:$('#coPhone').value,
+    email:$('#coEmail').value,extra:$('#coExtra').value}, naming:$('#setNaming').value};
+  if(newLogoData!==null) body.logo_data=newLogoData;
+  await fetch('/api/settings_save',{method:'POST',headers:H,body:JSON.stringify(body)});
+  newLogoData=null; closeSettings();
+  $('#appLogo').src='/api/logo?t='+Date.now(); toast('Réglages enregistrés.');
+};
+$('#setChangeCode').onclick=async()=>{
+  const code=prompt('Nouveau code d\'accès (4 caractères min) :');
+  if(code&&code.length>=4){ await fetch('/api/access_set',{method:'POST',headers:H,body:JSON.stringify({code})}); toast('Code modifié.'); }
+};
+
+/* ===================== GÉNÉRER LES LETTRES ===================== */
+$('#genBtn').onclick=openGen;
+$('#selClear').onclick=()=>{SELECTED.clear();render();updateSelBar();};
+function openGen(){
+  if(!SELECTED.size)return;
+  $('#genCount').textContent=SELECTED.size+' client'+(SELECTED.size>1?'s':'')+' sélectionné'+(SELECTED.size>1?'s':'');
+  $('#genOut').value=ROOT||'';
+  $('#genWarn').textContent='';
+  // liste d'aperçu (jusqu'à 10)
+  const ids=[...SELECTED].slice(0,10);
+  $('#genPrevSel').innerHTML=ids.map(id=>{
+    const c=CLIENTS.find(x=>x.id===id);
+    return `<option value="${id}">${esc(c?c.nom_prenom||('Bien '+c.immeuble+c.numero):id)}</option>`;
+  }).join('')+(SELECTED.size>10?`<option disabled>… +${SELECTED.size-10} autres</option>`:'');
+  refreshPreview();
+  $('#genModal').classList.add('open');
+}
+function closeGen(){$('#genModal').classList.remove('open');$('#genPrevFrame').src='about:blank';}
+$('#genModal').onclick=e=>{if(e.target.id==='genModal')closeGen();};
+function refreshPreview(){
+  const id=$('#genPrevSel').value; if(!id)return;
+  const date=encodeURIComponent($('#genDate').value.trim());
+  $('#genPrevFrame').src='/api/preview_letter?id='+id+'&date='+date+'&t='+Date.now();
+}
+$('#genPrevSel').onchange=refreshPreview;
+let genDateTimer=null;
+$('#genDate').addEventListener('input',()=>{clearTimeout(genDateTimer);genDateTimer=setTimeout(refreshPreview,400);});
+$('#genBrowse').onclick=()=>pickFolderThen(dir=>{$('#genOut').value=dir;});
+$('#genGo').onclick=async()=>{
+  const out=$('#genOut').value.trim();
+  const formats=[]; if($('#fmtPdf').checked)formats.push('pdf'); if($('#fmtDocx').checked)formats.push('docx');
+  if(!out){$('#genWarn').textContent='Choisissez un dossier de destination.';return;}
+  if(!formats.length){$('#genWarn').textContent='Choisissez au moins un format.';return;}
+  $('#genGo').disabled=true; $('#genGo').textContent='Génération…';
+  try{
+    const r=await (await fetch('/api/generate_batch',{method:'POST',headers:H,body:JSON.stringify({
+      ids:[...SELECTED], out_dir:out, formats, date:$('#genDate').value.trim()})})).json();
+    if(!r.ok){$('#genWarn').textContent=r.error||'Erreur';return;}
+    const nFiles=r.files.reduce((a,f)=>a+f.files.length,0);
+    const warns=r.files.flatMap(f=>f.warnings);
+    closeGen();
+    toast(nFiles+' fichier(s) créé(s) dans le dossier choisi.'+(warns.length?' (PDF non disponible — voir note)':''));
+  }finally{ $('#genGo').disabled=false; $('#genGo').textContent='Générer'; }
+};
+
+/* ===================== IMPORT EXCEL ===================== */
+function openImport(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.xlsx';
+  inp.onchange=async()=>{
+    const f=inp.files[0]; if(!f)return;
+    const fd=new FormData(); fd.append('file',f);
+    toast('Import en cours…');
+    const r=await (await fetch('/api/import_excel',{method:'POST',body:fd})).json();
+    if(r.ok){ toast(r.count+' lignes importées.'); location.reload(); }
+    else toast(r.error||'Import impossible.');
+  };
+  inp.click();
+}
+
+/* ===================== util ===================== */
+let pickCb=null;
+function pickFolderThen(cb){ pickCb=cb; $('#picker').classList.add('open'); $('#pkSearch').value=''; pkBrowse(FOLDERS[FOLDERS.length-1]||''); }
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);
+    t.style.cssText='position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#143A82;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;box-shadow:0 8px 30px rgba(0,0,0,.3);transition:opacity .3s';}
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._h); t._h=setTimeout(()=>t.style.opacity='0',3200);
+}
+
+// hook pkChoose to callback when in "pick folder" mode
+const _origPkChoose=$('#pkChoose').onclick;
+$('#pkChoose').onclick=()=>{
+  if(pickCb){ const cb=pickCb; pickCb=null; closePicker(); cb(pkCurrent); }
+  else { $('#root').value=pkCurrent; closePicker(); }
+};
+
+$('#settings').onclick=e=>{if(e.target.id==='settings')closeSettings();};
+$('#genModal').onclick=e=>{if(e.target.id==='genModal')closeGen();};
+
+initGate();
+</script>
+</body>
+</html>

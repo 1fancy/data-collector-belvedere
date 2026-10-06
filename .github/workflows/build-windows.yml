@@ -1,0 +1,42 @@
+# Construit "Data Collector.exe" pour Windows dans le cloud (GitHub Actions).
+# Permet d'obtenir un vrai .exe Windows sans posséder de PC Windows.
+#
+# Utilisation :
+#   1. Mettre ce dossier (belvedere_tool) dans un dépôt GitHub.
+#   2. Onglet "Actions" -> "Build Windows exe" -> "Run workflow".
+#   3. Télécharger l'artefact "Data-Collector-Windows" à la fin.
+
+name: Build Windows exe
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer les dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller python-docx openpyxl
+
+      - name: Construire l'exécutable
+        run: pyinstaller --noconfirm DataCollector.spec
+
+      - name: Compresser le résultat
+        run: Compress-Archive -Path "dist/Data Collector/*" -DestinationPath "Data-Collector-Windows.zip"
+
+      - name: Publier l'artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Data-Collector-Windows
+          path: Data-Collector-Windows.zip

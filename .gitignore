@@ -1,0 +1,22 @@
+# Données générées / runtime (ne pas versionner)
+data.json
+BELVEDERE_clients.xlsx
+belvedere.db
+belvedere.db-wal
+belvedere.db-shm
+app_config.json
+Projets/
+.ocr_cache/
+Letters/
+erreur_demarrage.txt
+
+# Artefacts de build
+build/
+dist/
+*.spec.bak
+__pycache__/
+*.pyc
+
+# Système
+.DS_Store
+vendor/
