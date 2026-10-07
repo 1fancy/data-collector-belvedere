@@ -541,8 +541,12 @@ def scan_folder_documents(folder, root, want_ocr=True):
             continue
         if kind == "cin":
             card = parse_cin_card(ocr.ocr_file(full, max_pages=1))
-            if card["cin"] and not enrich["cin_verifiee"]:
-                enrich["cin_verifiee"] = card["cin"]; enrich["cin_src"] = rel
+            if card["cin"]:
+                enrich.setdefault("cin_verifiee_list", [])
+                if card["cin"] not in enrich["cin_verifiee_list"]:
+                    enrich["cin_verifiee_list"].append(card["cin"])
+                if not enrich["cin_verifiee"]:
+                    enrich["cin_verifiee"] = card["cin"]; enrich["cin_src"] = rel
             for a, b in (("naissance", "naissance"), ("validite", "cin_validite"),
                          ("pere", "pere"), ("mere", "mere")):
                 if card[a] and not enrich[b]:
@@ -897,18 +901,39 @@ def scan(roots, mode="overwrite", existing=None, deep=True, progress=None):
                                   (f_com.get("nom_prenom"), src_com),
                                   (f_ocr.get("nom_prenom"), ocr_src)])
         noms = f_not.get("noms") or f_com.get("noms") or f_ocr.get("noms") or []
-        cins = f_not.get("cin") or f_com.get("cin") or f_ocr.get("cin") or []
+        raw_cins = f_not.get("cin") or f_com.get("cin") or f_ocr.get("cin") or []
+        # Toutes les CIN confirmées par une carte scannée (liste).
+        verified = list(enrich.get("cin_verifiee_list") or
+                        ([enrich["cin_verifiee"]] if enrich.get("cin_verifiee") else []))
+
+        # Nombre d'acquéreurs attendu (quote-part ou noms).
+        n_owners = max(len(noms), len([q for q in (f_not.get("quote_part")
+                       or f_com.get("quote_part") or []) if q]), 1)
+
+        # Réconcilier : les CIN VÉRIFIÉES (carte d'identité) sont prioritaires et
+        # placées en premier ; on complète ensuite avec les CIN des fiches, sans
+        # dépasser le nombre d'acquéreurs (pour éviter le bruit OCR).
+        ordered = []
+        for v in verified:
+            if v and v not in ordered:
+                ordered.append(v)
+        for c in raw_cins:
+            if c and c not in ordered:
+                ordered.append(c)
+        # On garde au plus n_owners CIN (les vérifiées d'abord). Les éventuelles
+        # CIN en trop sont conservées separement comme "autres codes détectés".
+        cins = ordered[:n_owners] if ordered else []
+        extras = ordered[n_owners:]
+        cin_verified_set = [c for c in cins if c in verified]
+        cin_verif = verified[0] if verified else ""
+
         if cins:
-            prov["cin"] = [s for s, d in ((src_not, f_not), (src_com, f_com), (ocr_src, f_ocr))
-                           if s and d.get("cin")]
-        # CIN confirmée par la carte scannée
-        cin_verif = enrich.get("cin_verifiee", "")
-        if cin_verif:
-            if not cins:
-                cins = [cin_verif]
-            prov.setdefault("cin", [])
-            if enrich.get("cin_src") and enrich["cin_src"] not in prov["cin"]:
-                prov["cin"].append(enrich["cin_src"])
+            prov["cin"] = [s for s, dd in ((src_not, f_not), (src_com, f_com), (ocr_src, f_ocr))
+                           if s and dd.get("cin")]
+            if enrich.get("cin_src") and verified:
+                prov.setdefault("cin", [])
+                if enrich["cin_src"] not in prov["cin"]:
+                    prov["cin"].append(enrich["cin_src"])
 
         qp = pick("quote_part", [(f_not.get("quote_part"), src_not),
                                  (f_com.get("quote_part"), src_com)]) or \
@@ -969,6 +994,8 @@ def scan(roots, mode="overwrite", existing=None, deep=True, progress=None):
             recu_montant=enrich.get("recu_montant", ""),
             recu_date=enrich.get("recu_date", ""),
             cin_verifiee=cin_verif,
+            cin_verified=cin_verified_set,   # CIN confirmées par carte d'identité
+            cin_extras=extras,               # autres codes détectés (à vérifier)
             provenance=prov,
         )
         rec["source_folder"] = folder

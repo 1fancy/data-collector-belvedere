@@ -163,6 +163,7 @@
   td.money{text-align:right}
   thead th.money-h{text-align:right}
   td.cin{font-feature-settings:"tnum";color:#39434f;letter-spacing:.01em}
+  .cinok{width:13px;height:13px;color:var(--green-d);margin-left:5px;vertical-align:-2px}
   .todo-name{color:var(--amber);font-weight:600;font-style:italic}
   /* largeurs maîtrisées */
   td.name{max-width:220px} td.name b{font-weight:600}
@@ -289,6 +290,7 @@
     border-bottom:1px solid var(--line-s)}
   .frow:last-child{border-bottom:0} .frow:nth-child(even){background:#fafcfe}
   .fl{color:var(--mute);flex-shrink:0} .fv{text-align:right;font-weight:500}
+  .fv.cin-extra{color:var(--amber)} .fv .xnote{font-size:10.5px;color:var(--faint);font-weight:400;margin-top:2px}
   .doclist{display:flex;flex-direction:column;gap:8px}
   .docfile{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid var(--line);
     border-radius:10px;text-decoration:none;color:var(--ink);transition:.15s}
@@ -927,10 +929,16 @@ function nameCell(c){
   return os.map(o=>`<div class="owln"><b>${esc(o.nom)}</b></div>`).join('')
     +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
 }
+const CHECK='<svg class="cinok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" title="Vérifiée sur la carte d\'identité"><path d="M20 6 9 17l-5-5"/></svg>';
+function cinOne(code,c){
+  if(!code) return '—';
+  const verified=(c.cin_verified||[]).includes(code);
+  return esc(code)+(verified?CHECK:'');
+}
 function cinCell(c){
   const os=owners(c);
-  if(os.length<=1) return esc(c.cin_str)||'—';
-  return os.map(o=>`<div class="owln">${esc(o.cin)||'—'}</div>`).join('');
+  if(os.length<=1) return (c.cin&&c.cin.length)?cinOne(c.cin[0],c):'—';
+  return os.map(o=>`<div class="owln">${cinOne(o.cin,c)}</div>`).join('');
 }
 function qpCell(c){
   const os=owners(c);
@@ -1116,8 +1124,12 @@ function openDetail(id){
   const add=(l,v,field)=>{ if(v) rows.push(
     `<div class="frow"><span class="fl">${l}</span>
      <span class="fv">${esc(v)}${field?infoIcon(field,prov):''}</span></div>`); };
-  add('C.I.N',c.cin_str,'cin');
-  if(c.cin_verifiee && c.cin_verifiee!==c.cin_str) add('C.I.N vérifiée (scan)',c.cin_verifiee,'cin_verifiee');
+  // C.I.N avec coche verte si confirmée sur la carte d'identité.
+  const cinHtml=(c.cin||[]).map(code=>cinOne(code,c)).join(' / ');
+  if(cinHtml) rows.push(`<div class="frow"><span class="fl">C.I.N</span>
+    <span class="fv">${cinHtml}${infoIcon('cin',prov)}</span></div>`);
+  if((c.cin_extras||[]).length) rows.push(`<div class="frow"><span class="fl">Autres codes détectés</span>
+    <span class="fv cin-extra">${c.cin_extras.map(esc).join(' / ')}<div class="xnote">codes trouvés dans les fiches, non confirmés par une carte d'identité</div></span></div>`);
   add('Quote-part',(c.quote_part||[]).join(' / '),'quote_part');
   add('Date de naissance',c.naissance,'naissance');
   add('C.I.N valable jusqu\'au',c.cin_validite,'cin_validite');
