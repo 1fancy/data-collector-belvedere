@@ -30,8 +30,20 @@ rem ---------------------------------------------------------------
 rem  Parametres (depot public contenant UNIQUEMENT le code)
 rem ---------------------------------------------------------------
 set "REPO_ZIP=https://github.com/1fancy/data-collector-belvedere/archive/refs/heads/main.zip"
-set "WORKDIR=%CD%\DataCollector_build"
-set "APPDIR=%CD%\Data Collector"
+
+rem Tout est installe dans un SEUL sous-dossier dedie, cree a cote du .bat.
+rem Rien d'autre sur le PC n'est touche.
+set "HOME_DIR=%CD%\DataCollector_Romana"
+set "WORKDIR=%HOME_DIR%\_build_temp"
+set "APPDIR=%HOME_DIR%\Data Collector"
+
+echo   Le logiciel sera installe dans :
+echo       %HOME_DIR%
+echo.
+set /p GO=  Continuer ? (O/N) :
+if /i not "%GO%"=="O" ( echo   Annule. & timeout /t 2 ^>nul & exit /b 0 )
+echo.
+if not exist "%HOME_DIR%" mkdir "%HOME_DIR%"
 
 rem ---------------------------------------------------------------
 rem  2) Verifier Python
@@ -88,11 +100,10 @@ echo   [5/5] Finalisation...
 if exist "%APPDIR%" rmdir /s /q "%APPDIR%"
 move "%SRC%\dist\Data Collector" "%APPDIR%" >nul
 
-rem Archive des fichiers de construction (cache, zip, build) dans "installer\"
-if not exist "%CD%\installer" mkdir "%CD%\installer"
-move "%WORKDIR%" "%CD%\installer\build_%RANDOM%" >nul 2>&1
+rem Supprimer les fichiers temporaires de construction (uniquement notre dossier).
+if exist "%WORKDIR%" rmdir /s /q "%WORKDIR%"
 
-rem Raccourci sur le Bureau
+rem Raccourci sur le Bureau (pointant vers l'app installee)
 set "LNK=%USERPROFILE%\Desktop\Data Collector.lnk"
 powershell -NoProfile -Command ^
   "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('%LNK%'); $s.TargetPath='%APPDIR%\Data Collector.exe'; $s.WorkingDirectory='%APPDIR%'; $s.IconLocation='%APPDIR%\Data Collector.exe'; $s.Save()"
@@ -100,8 +111,8 @@ powershell -NoProfile -Command ^
 echo.
 echo   ============================================================
 echo      Installation terminee !
-echo      L'application est dans le dossier : "Data Collector"
-echo      Un raccourci a ete cree sur le Bureau.
+echo      Dossier : %APPDIR%
+echo      Un raccourci "Data Collector" a ete cree sur le Bureau.
 echo   ============================================================
 echo.
 echo   Lancement de l'application...

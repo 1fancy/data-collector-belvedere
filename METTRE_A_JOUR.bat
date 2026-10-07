@@ -17,8 +17,18 @@ if /i not "%OK%"=="O" ( echo Annule. & timeout /t 2 >nul & exit /b 0 )
 echo.
 
 set "REPO_ZIP=https://github.com/1fancy/data-collector-belvedere/archive/refs/heads/main.zip"
-set "WORKDIR=%CD%\DataCollector_update"
-set "APPDIR=%CD%\Data Collector"
+
+rem Trouver le dossier de l'application (a cote du .bat, ou dans le sous-dossier).
+set "APPDIR="
+if exist "%CD%\Data Collector\Data Collector.exe" set "APPDIR=%CD%\Data Collector"
+if not defined APPDIR if exist "%CD%\DataCollector_Romana\Data Collector\Data Collector.exe" set "APPDIR=%CD%\DataCollector_Romana\Data Collector"
+if not defined APPDIR (
+  echo   [X] Application introuvable. Placez ce fichier a cote du dossier
+  echo       "Data Collector" ^(ou de "DataCollector_Romana"^).
+  pause & exit /b 1
+)
+for %%I in ("%APPDIR%\..") do set "HOME_DIR=%%~fI"
+set "WORKDIR=%HOME_DIR%\_update_temp"
 
 set "PY="
 where py  >nul 2>&1 && set "PY=py"
