@@ -76,8 +76,18 @@ def _is_macos():
     return platform.system() == "Darwin"
 
 
+def _has_rapidocr():
+    try:
+        import rapidocr_onnxruntime  # noqa: F401
+        return True
+    except Exception:
+        return False
+
+
 def engine():
-    """Nom du moteur OCR disponible : 'vision', 'tesseract' ou ''."""
+    """Moteur OCR disponible, par ordre de préférence :
+    'vision' (macOS, intégré) > 'tesseract' (si installé) > 'rapidocr' (inclus).
+    """
     if "engine" in _CACHE:
         return _CACHE["engine"]
     eng = ""
@@ -85,8 +95,21 @@ def engine():
         eng = "vision"
     elif _have("tesseract"):
         eng = "tesseract"
+    elif _has_rapidocr():
+        eng = "rapidocr"
     _CACHE["engine"] = eng
     return eng
+
+
+_RAPID = None
+
+
+def _rapid_reader():
+    global _RAPID
+    if _RAPID is None:
+        from rapidocr_onnxruntime import RapidOCR
+        _RAPID = RapidOCR()
+    return _RAPID
 
 
 def available():
@@ -138,6 +161,14 @@ def ocr_image(img_path, langs=("fr-FR", "en-US", "ar-SA")):
                            capture_output=True, timeout=120)
         if r.returncode == 0:
             return r.stdout.decode("utf-8", errors="replace")
+    if eng == "rapidocr":
+        try:
+            result, _ = _rapid_reader()(img_path)
+            if result:
+                # result = liste de [box, texte, score] -> on garde les textes.
+                return "\n".join(line[1] for line in result)
+        except Exception:
+            return ""
     return ""
 
 

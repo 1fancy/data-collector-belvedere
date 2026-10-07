@@ -19,18 +19,30 @@ datas = [
     ("static/app.ico", "static"),
     ("static/ocr_vision.swift", "static"),
 ]
+hidden = ["paths", "app", "extract", "letters", "store", "ocr", "openpyxl", "docx"]
+binaries = []
+
+# OCR hors-ligne intégré (RapidOCR) : embarqué s'il est installé. Il apporte
+# ses propres modèles ONNX, qu'il faut collecter.
+try:
+    from PyInstaller.utils.hooks import collect_all
+    d, b, h = collect_all("rapidocr_onnxruntime")
+    datas += d; binaries += b; hidden += h
+    d, b, h = collect_all("onnxruntime")
+    datas += d; binaries += b; hidden += h
+except Exception:
+    pass
 
 a = Analysis(
     ["DataCollector.py"],
     pathex=["."],
-    binaries=[],
+    binaries=binaries,
     datas=datas,
-    hiddenimports=["paths", "app", "extract", "letters", "store", "ocr",
-                   "openpyxl", "docx"],
+    hiddenimports=hidden,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=["tkinter", "matplotlib", "numpy", "PyQt5", "PySide2"],
+    excludes=["tkinter", "matplotlib", "PyQt5", "PySide2"],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,

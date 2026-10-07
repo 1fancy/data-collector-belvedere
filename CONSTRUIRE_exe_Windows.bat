@@ -22,7 +22,7 @@ if not defined PY (
 
 echo [1/3] Installation des outils de construction...
 %PY% -m pip install --quiet --upgrade pip
-%PY% -m pip install --quiet pyinstaller python-docx openpyxl
+%PY% -m pip install --quiet pyinstaller python-docx openpyxl rapidocr_onnxruntime
 if errorlevel 1 (
   echo [!] Installation impossible (verifiez la connexion internet).
   pause & exit /b 1

@@ -782,12 +782,15 @@ let SELECTED=new Set();
 async function loadCaps(){
   const c=await (await fetch('/api/capabilities')).json();
   const ocrName=c.ocr_engine==='vision'?'OCR (Apple Vision)'
-               :c.ocr_engine==='tesseract'?'OCR (Tesseract)':'OCR';
+               :c.ocr_engine==='tesseract'?'OCR (Tesseract)'
+               :c.ocr_engine==='rapidocr'?'OCR (intégré)':'OCR';
   const ocrTip=c.ocr_engine==='vision'
     ?"Lecture des documents scannés (CIN, reçus…) par le moteur intégré de macOS. Aucune installation."
     :c.ocr_engine==='tesseract'
     ?"Lecture des documents scannés par Tesseract."
-    :"Lecture des documents scannés (images). Optionnel. Sur macOS, c'est automatique.";
+    :c.ocr_engine==='rapidocr'
+    ?"Lecture des documents scannés par le moteur intégré (hors-ligne, aucune installation)."
+    :"Lecture des documents scannés (images). Optionnel.";
   const meta=[
     ['doc','Word',"Lecture des fiches Word .doc"],
     ['docx','.docx',"Lecture et remplissage des documents .docx"],
