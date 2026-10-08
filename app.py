@@ -517,11 +517,24 @@ class Handler(BaseHTTPRequestHandler):
                 c = next((x for x in STATE["clients"] if x["id"] == cid), None)
             if not c:
                 return self._send(404, {"ok": False, "error": "client"})
-            o = store.set_override(store.bkey_of(c), patch=patch)
+            # Capturer la valeur ACTUELLE (= extraite si pas encore modifiée)
+            # comme « original » avant de la remplacer, pour pouvoir rétablir.
+            originals = {}
+            for k in patch:
+                if k == "cin_str":
+                    originals[k] = " / ".join(c.get("cin", []))
+                elif k == "quote_part":
+                    originals[k] = " / ".join(c.get("quote_part", []))
+                else:
+                    originals[k] = c.get(k, "")
+            o = store.set_override(store.bkey_of(c), patch=patch, originals=originals)
             with LOCK:
                 c.update(patch)
+                if "cin_str" in patch:
+                    c["cin"] = [x.strip() for x in str(patch["cin_str"]).split("/") if x.strip()]
                 c["edited"] = True
                 c["edited_at"] = o["edited_at"]
+                c["edited_fields"] = list(o["patch"].keys())
             return self._send(200, {"ok": True, "edited_at": o["edited_at"]})
 
         if u.path == "/api/approve_client":
@@ -544,6 +557,26 @@ class Handler(BaseHTTPRequestHandler):
                 c = next((x for x in STATE["clients"] if x["id"] == cid), None)
             if c:
                 store.clear_override(store.bkey_of(c))
+            return self._send(200, {"ok": True})
+
+        if u.path == "/api/reset_field":
+            # Rétablir la valeur extraite d'UN champ.
+            cid = body.get("id"); field = body.get("field", "")
+            with LOCK:
+                c = next((x for x in STATE["clients"] if x["id"] == cid), None)
+            if c and field:
+                orig = store.clear_override_field(store.bkey_of(c), field)
+                with LOCK:
+                    if orig is not None:
+                        c[field] = orig
+                        if field == "cin_str":
+                            c["cin"] = [x.strip() for x in str(orig).split("/") if x.strip()]
+                        if field == "quote_part":
+                            c["quote_part"] = [x.strip() for x in str(orig).split("/") if x.strip()]
+                    # retirer de edited_fields
+                    ef = store.get_overrides().get(store.bkey_of(c), {}).get("patch", {})
+                    c["edited_fields"] = list(ef.keys())
+                    c["edited"] = bool(ef)
             return self._send(200, {"ok": True})
 
         if u.path == "/api/source_lock":

@@ -117,11 +117,19 @@ def init():
     CREATE TABLE IF NOT EXISTS overrides (
         bkey TEXT PRIMARY KEY,
         patch TEXT,            -- JSON des champs modifiés manuellement
+        originals TEXT,        -- JSON des valeurs extraites d'origine (pour rétablir)
         approved INTEGER DEFAULT 0,
         edited_at TEXT,
         approved_at TEXT
     );
     """)
+    # Ajouter la colonne originals si base ancienne.
+    try:
+        cols = [r["name"] for r in con.execute("PRAGMA table_info(overrides)").fetchall()]
+        if "originals" not in cols:
+            con.execute("ALTER TABLE overrides ADD COLUMN originals TEXT")
+    except Exception:
+        pass
     # Migration : si la table clients a une contrainte UNIQUE sur bkey (ancien
     # schéma), elle écrase les doublons. On la recrée sans cette contrainte.
     try:
@@ -289,12 +297,15 @@ def _now():
     return datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
 
 
-def set_override(bkey, patch=None, approved=None):
-    """Enregistre/maj un override. patch=dict (fusionné), approved=bool."""
+def set_override(bkey, patch=None, approved=None, originals=None):
+    """Enregistre/maj un override. patch=dict (fusionné), approved=bool.
+    originals=dict des valeurs extraites d'origine (enregistrées une seule fois
+    par champ, pour pouvoir y revenir)."""
     init()
     con = _connect()
     row = con.execute("SELECT * FROM overrides WHERE bkey=?", (bkey,)).fetchone()
     cur_patch = {}
+    cur_orig = {}
     edited_at = approved_at = ""
     cur_approved = 0
     if row:
@@ -302,9 +313,17 @@ def set_override(bkey, patch=None, approved=None):
             cur_patch = json.loads(row["patch"] or "{}")
         except (ValueError, TypeError):
             cur_patch = {}
+        try:
+            cur_orig = json.loads((row["originals"] if "originals" in row.keys() else "") or "{}")
+        except (ValueError, TypeError):
+            cur_orig = {}
         cur_approved = row["approved"] or 0
         edited_at = row["edited_at"] or ""
         approved_at = row["approved_at"] or ""
+    if originals:
+        # Ne stocker l'original QUE la première fois pour chaque champ.
+        for k, v in originals.items():
+            cur_orig.setdefault(k, v)
     if patch:
         cur_patch.update(patch)
         edited_at = _now()
@@ -312,13 +331,14 @@ def set_override(bkey, patch=None, approved=None):
         cur_approved = 1 if approved else 0
         approved_at = _now() if approved else ""
     con.execute(
-        "INSERT OR REPLACE INTO overrides(bkey, patch, approved, edited_at, approved_at) "
-        "VALUES (?,?,?,?,?)",
-        (bkey, json.dumps(cur_patch, ensure_ascii=False), cur_approved,
+        "INSERT OR REPLACE INTO overrides(bkey, patch, originals, approved, edited_at, approved_at) "
+        "VALUES (?,?,?,?,?,?)",
+        (bkey, json.dumps(cur_patch, ensure_ascii=False),
+         json.dumps(cur_orig, ensure_ascii=False), cur_approved,
          edited_at, approved_at))
     con.commit()
     con.close()
-    return {"patch": cur_patch, "approved": bool(cur_approved),
+    return {"patch": cur_patch, "originals": cur_orig, "approved": bool(cur_approved),
             "edited_at": edited_at, "approved_at": approved_at}
 
 
@@ -347,11 +367,40 @@ def apply_overrides(clients):
             c.update(o["patch"])
             if "cin_str" in o["patch"]:
                 c["cin"] = [x.strip() for x in str(o["patch"]["cin_str"]).split("/") if x.strip()]
+            if "quote_part" in o["patch"]:
+                c["quote_part"] = [x.strip() for x in str(o["patch"]["quote_part"]).split("/") if x.strip()]
         c["edited"] = bool(o["patch"])
+        c["edited_fields"] = list(o["patch"].keys()) if o["patch"] else []
         c["edited_at"] = o["edited_at"]
         c["approved"] = o["approved"]
         c["approved_at"] = o["approved_at"]
     return clients
+
+
+def clear_override_field(bkey, field):
+    """Supprime UN champ modifié et renvoie sa valeur d'origine (pour rétablir)."""
+    init()
+    con = _connect()
+    row = con.execute("SELECT * FROM overrides WHERE bkey=?", (bkey,)).fetchone()
+    if not row:
+        con.close()
+        return None
+    try:
+        patch = json.loads(row["patch"] or "{}")
+    except (ValueError, TypeError):
+        patch = {}
+    try:
+        orig = json.loads((row["originals"] if "originals" in row.keys() else "") or "{}")
+    except (ValueError, TypeError):
+        orig = {}
+    original_value = orig.get(field)
+    patch.pop(field, None)
+    con.execute("UPDATE overrides SET patch=?, edited_at=? WHERE bkey=?",
+                (json.dumps(patch, ensure_ascii=False),
+                 _now() if patch else "", bkey))
+    con.commit()
+    con.close()
+    return original_value
 
 
 def get_folders():

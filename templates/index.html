@@ -304,10 +304,17 @@
   .frow:hover .fedit{opacity:1}
   .fedit:hover{background:#eef2f8;color:var(--navy)}
   .fedit-wrap{display:flex;align-items:center;gap:5px;width:100%}
-  .feok,.fecancel{width:26px;height:28px;border-radius:7px;font-size:15px;flex-shrink:0}
+  .dunit{color:var(--mute);font-size:12px;flex-shrink:0}
+  .feok,.fecancel,.ferevert{width:26px;height:28px;border-radius:7px;font-size:15px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center}
   .feok{background:#e4f4ec;color:var(--green-d)} .feok:hover{background:#d4ecdd}
   .fecancel{background:#f0f3f9;color:var(--mute)} .fecancel:hover{background:#e3e9f3}
+  .ferevert{background:#fdf3e0;color:var(--amber)} .ferevert:hover{background:#fbe8c8}
+  .ferevert svg{width:14px;height:14px}
   .ds.hint{color:var(--faint);font-weight:400;max-width:200px}
+  .fed-dot{font-size:9px;font-weight:700;color:var(--amber);background:#fdf3e0;padding:1px 6px;
+    border-radius:999px;margin-left:6px;text-transform:uppercase}
+  .frow.isedited{background:#fffdf5!important}
   .enriched-badge{background:#eaf6ea;color:var(--green-d);border:1px solid #cfe8cf;
     padding:9px 12px;border-radius:9px;font-size:12px;margin-bottom:16px}
   .fsec{font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;
@@ -1185,13 +1192,16 @@ function openDetail(id){
     quote_part:1,prix_total:1,avance:1,reste:1,statut:1,date_courrier:1,
     superficie:1,etage:1,observation:1};
   // Chaque ligne affiche : valeur + icône info (provenance) + crayon (éditer).
+  const editedF=c.edited_fields||[];
   const add=(l,v,field,editKey)=>{
     const ek=editKey||field;
     const editable=ek && EDITABLE[ek];
     if(!v && !editable) return;
+    const wasEdited=ek && editedF.includes(ek);
+    const edMark=wasEdited?'<span class="fed-dot" title="Valeur modifiée manuellement">modifié</span>':'';
     const pencil=editable?`<button class="fedit" data-k="${ek}" data-label="${esc(l)}" title="Modifier">${PENCIL}</button>`:'';
-    rows.push(`<div class="frow"><span class="fl">${l}</span>
-      <span class="fv">${esc(v)||'<span class="muted-dash">—</span>'}${field?infoIcon(field,prov):''}${pencil}</span></div>`);
+    rows.push(`<div class="frow${wasEdited?' isedited':''}"><span class="fl">${l}</span>
+      <span class="fv">${esc(v)||'<span class="muted-dash">—</span>'}${edMark}${field?infoIcon(field,prov):''}${pencil}</span></div>`);
   };
   add('Nom / Prénom',c.nom_prenom,null,'nom_prenom');
   // C.I.N : valeur + coche verte (si vérifiée) + info + crayon pour corriger.
@@ -1245,22 +1255,35 @@ function openDetail(id){
 }
 
 // Édition en ligne d'UN champ : le pencil transforme la cellule en input.
+// Unité/suffixe affiché mais NON éditable (on édite la valeur seule).
+const FIELD_UNIT={superficie:' m²', prix_total:' DH', avance:' DH', reste:' DH'};
+function fieldRawValue(c,key){
+  if(key==='cin_str') return (c.cin||[]).join(' / ');
+  if(key==='quote_part') return (c.quote_part||[]).join(' / ');
+  let v=String(c[key]||'');
+  const u=FIELD_UNIT[key];
+  if(u && v.endsWith(u.trim())) v=v.replace(new RegExp('\\s*'+u.trim().replace('²','\\u00b2')+'\\s*$'),'').trim();
+  return v;
+}
 function startFieldEdit(btn,id){
   const c=CLIENTS.find(x=>x.id===id); if(!c)return;
   const key=btn.dataset.k, label=btn.dataset.label;
   const fv=btn.closest('.fv');
-  let cur='';
-  if(key==='cin_str') cur=(c.cin||[]).join(' / ');
-  else if(key==='quote_part') cur=(c.quote_part||[]).join(' / ');
-  else if(key==='prix_total'||key==='avance'||key==='reste') cur=c[key]||'';
-  else cur=c[key]||'';
+  const cur=fieldRawValue(c,key);
+  const unit=FIELD_UNIT[key]||'';
+  const isEdited=(c.edited_fields||[]).includes(key);
   fv.innerHTML=`<span class="fedit-wrap">
     <input class="dedit" value="${esc(cur)}">
+    ${unit?`<span class="dunit">${esc(unit.trim())}</span>`:''}
+    ${isEdited?`<button class="ferevert" title="Rétablir la valeur d'origine">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>`:''}
     <button class="feok" title="Valider">✓</button>
     <button class="fecancel" title="Annuler">×</button></span>`;
   const inp=fv.querySelector('.dedit'); inp.focus(); inp.select();
   const commit=async()=>{
-    const val=inp.value.trim();
+    let val=inp.value.trim();
+    // Réattacher l'unité pour les champs qui en portent une dans la donnée stockée.
+    if(key==='superficie' && val && !/m²|m2/i.test(val)) val=val+' m²';
     const patch={}; patch[key]=val;
     const r=await (await fetch('/api/update_client',{method:'POST',headers:H,
       body:JSON.stringify({id,patch})})).json();
@@ -1270,11 +1293,17 @@ function startFieldEdit(btn,id){
       if(key==='quote_part') c.quote_part=val.split('/').map(s=>s.trim()).filter(Boolean);
       if(key==='nom_prenom') c.noms=val.split('/').map(s=>s.trim()).filter(Boolean);
       c.edited=true; c.edited_at=r.edited_at;
+      (c.edited_fields=c.edited_fields||[]).includes(key)||c.edited_fields.push(key);
       openDetail(id); render(); toast('Modifié.');
     }
   };
+  const revert=async()=>{
+    await fetch('/api/reset_field',{method:'POST',headers:H,body:JSON.stringify({id,field:key})});
+    await loadClients(); openDetail(id); toast('Valeur d\'origine rétablie.');
+  };
   fv.querySelector('.feok').onclick=commit;
   fv.querySelector('.fecancel').onclick=()=>openDetail(id);
+  const rv=fv.querySelector('.ferevert'); if(rv) rv.onclick=revert;
   inp.addEventListener('keydown',e=>{ if(e.key==='Enter')commit(); if(e.key==='Escape')openDetail(id); });
 }
 
