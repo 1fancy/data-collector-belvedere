@@ -292,21 +292,32 @@
   .dbtn.approved{background:#e4f4ec;color:var(--green-d)}
   .dstatus{display:flex;flex-direction:column;gap:2px;margin-left:auto;text-align:right}
   .ds{font-size:10.5px} .ds.ok{color:var(--green-d)} .ds.ed{color:var(--amber)}
-  .frow.edit .fv{flex:1}
-  .dedit{width:100%;padding:6px 9px;border:1px solid var(--blue);border-radius:7px;font-size:12.5px;
+  .dedit{flex:1;padding:6px 9px;border:1px solid var(--blue);border-radius:7px;font-size:12.5px;
     text-align:right;background:#fff}
   .dedit:focus{outline:none;box-shadow:0 0 0 3px rgba(11,120,189,.12)}
   .savebar{display:flex;flex-direction:column;gap:7px;margin:14px 0}
+  /* crayon d'édition par champ : apparaît au survol de la ligne */
+  .fedit{margin-left:7px;width:22px;height:22px;border-radius:6px;color:var(--faint);
+    display:inline-flex;align-items:center;justify-content:center;opacity:0;transition:opacity .12s;
+    vertical-align:middle;flex-shrink:0}
+  .fedit svg{width:13px;height:13px}
+  .frow:hover .fedit{opacity:1}
+  .fedit:hover{background:#eef2f8;color:var(--navy)}
+  .fedit-wrap{display:flex;align-items:center;gap:5px;width:100%}
+  .feok,.fecancel{width:26px;height:28px;border-radius:7px;font-size:15px;flex-shrink:0}
+  .feok{background:#e4f4ec;color:var(--green-d)} .feok:hover{background:#d4ecdd}
+  .fecancel{background:#f0f3f9;color:var(--mute)} .fecancel:hover{background:#e3e9f3}
+  .ds.hint{color:var(--faint);font-weight:400;max-width:200px}
   .enriched-badge{background:#eaf6ea;color:var(--green-d);border:1px solid #cfe8cf;
     padding:9px 12px;border-radius:9px;font-size:12px;margin-bottom:16px}
   .fsec{font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;
     letter-spacing:.06em;margin:18px 0 9px}
   .fsec:first-child{margin-top:0}
   .fields{border:1px solid var(--line-s);border-radius:10px;overflow:hidden}
-  .frow{display:flex;justify-content:space-between;gap:14px;padding:9px 13px;font-size:13px;
-    border-bottom:1px solid var(--line-s)}
+  .frow{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:7px 13px;font-size:13px;
+    border-bottom:1px solid var(--line-s);min-height:38px}
   .frow:last-child{border-bottom:0} .frow:nth-child(even){background:#fafcfe}
-  .fl{color:var(--mute);flex-shrink:0} .fv{text-align:right;font-weight:500}
+  .fl{color:var(--mute);flex-shrink:0} .fv{text-align:right;font-weight:500;display:flex;align-items:center;justify-content:flex-end;flex:1}
   .fv.cin-extra{color:var(--amber)} .fv .xnote{font-size:10.5px;color:var(--faint);font-weight:400;margin-top:2px}
   .doclist{display:flex;flex-direction:column;gap:8px}
   .docfile{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid var(--line);
@@ -1149,48 +1160,45 @@ function infoIcon(field,prov){
   return `<button class="finfo${n>1?' multi':''}" data-srcs="${data}" title="${title}" aria-label="${title}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>${n>1?`<span class="cnt">${n}</span>`:''}</button>`;
 }
-let detailEditMode=false;
+const PENCIL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+let curDetailId=null;
 function openDetail(id){
   const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  curDetailId=id;
   const prov=c.provenance||{};
   $('#dName').textContent=c.nom_prenom||`Îlot ${c.ilot} · ${c.immeuble}${c.numero}`;
   $('#dSub').textContent=`Îlot ${c.ilot} · Immeuble ${c.immeuble} · ${c.type_bien} N° ${c.numero}`;
-  // Barre d'actions : approuver / modifier + statut.
+  // Barre d'actions : approuver + statut (l'édition se fait champ par champ).
   const apCls=c.approved?'approved':'';
   $('#dActions').innerHTML=`
     <button class="dbtn ${apCls}" id="dApprove">${c.approved
       ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Approuvé'
       :'Approuver'}</button>
-    <button class="dbtn" id="dEdit">${detailEditMode?'Terminer':'Modifier'}</button>
     ${(c.edited||c.approved)?`<div class="dstatus">
       ${c.approved?`<span class="ds ok">Approuvé le ${esc(c.approved_at||'')}</span>`:''}
       ${c.edited?`<span class="ds ed">Modifié le ${esc(c.edited_at||'')}</span>`:''}
-    </div>`:''}`;
+    </div>`:'<div class="dstatus"><span class="ds hint">Survolez une donnée puis cliquez le crayon pour la corriger.</span></div>'}`;
   $('#dApprove').onclick=()=>toggleApprove(id);
-  $('#dEdit').onclick=()=>{ detailEditMode=!detailEditMode; openDetail(id); };
   const rows=[];
   // Champs modifiables manuellement (clé = champ du client).
   const EDITABLE={nom_prenom:1,cin_str:1,tel:1,adresse1:1,ville:1,pays:1,
     quote_part:1,prix_total:1,avance:1,reste:1,statut:1,date_courrier:1,
     superficie:1,etage:1,observation:1};
+  // Chaque ligne affiche : valeur + icône info (provenance) + crayon (éditer).
   const add=(l,v,field,editKey)=>{
     const ek=editKey||field;
-    if(detailEditMode && ek && EDITABLE[ek]){
-      rows.push(`<div class="frow edit"><span class="fl">${l}</span>
-        <span class="fv"><input class="dedit" data-k="${ek}" value="${esc(v||'')}"></span></div>`);
-    } else if(v) {
-      rows.push(`<div class="frow"><span class="fl">${l}</span>
-        <span class="fv">${esc(v)}${field?infoIcon(field,prov):''}</span></div>`);
-    }
+    const editable=ek && EDITABLE[ek];
+    if(!v && !editable) return;
+    const pencil=editable?`<button class="fedit" data-k="${ek}" data-label="${esc(l)}" title="Modifier">${PENCIL}</button>`:'';
+    rows.push(`<div class="frow"><span class="fl">${l}</span>
+      <span class="fv">${esc(v)||'<span class="muted-dash">—</span>'}${field?infoIcon(field,prov):''}${pencil}</span></div>`);
   };
   add('Nom / Prénom',c.nom_prenom,null,'nom_prenom');
-  // C.I.N avec coche verte si confirmée (sauf en mode édition où on la saisit).
-  if(detailEditMode){
-    add('C.I.N',(c.cin||[]).join(' / '),null,'cin_str');
-  } else {
-    const cinHtml=(c.cin||[]).map(code=>cinOne(code,c)).join(' / ');
-    if(cinHtml) rows.push(`<div class="frow"><span class="fl">C.I.N</span>
-      <span class="fv">${cinHtml}${infoIcon('cin',prov)}</span></div>`);
+  // C.I.N : valeur + coche verte (si vérifiée) + info + crayon pour corriger.
+  {
+    const cinHtml=(c.cin||[]).map(code=>cinOne(code,c)).join(' / ') || '<span class="muted-dash">—</span>';
+    rows.push(`<div class="frow"><span class="fl">C.I.N</span>
+      <span class="fv">${cinHtml}${infoIcon('cin',prov)}<button class="fedit" data-k="cin_str" data-label="C.I.N" title="Modifier">${PENCIL}</button></span></div>`);
     if((c.cin_extras||[]).length) rows.push(`<div class="frow"><span class="fl">Autres codes détectés</span>
       <span class="fv cin-extra">${c.cin_extras.map(esc).join(' / ')}<div class="xnote">codes trouvés dans les fiches, non confirmés par une carte d'identité</div></span></div>`);
   }
@@ -1214,14 +1222,13 @@ function openDetail(id){
   }).join('');
   const enrichedNote=(c.naissance||c.pere||c.recu_num)
     ?'<div class="enriched-badge">Certaines données sont lues sur les documents scannés. L\'icône d\'information indique leur provenance.</div>':'';
-  const saveBar=detailEditMode
-    ?`<div class="savebar"><button class="btn green block" id="dSaveEdits">Enregistrer les modifications</button>
-      <button class="btn ghost block" id="dResetEdits">Annuler mes modifications (revenir à l'extrait)</button></div>`:'';
+  const resetBar=(c.edited||c.approved)
+    ?`<div class="savebar"><button class="btn ghost block" id="dResetEdits">Annuler mes modifications (revenir à l'extrait)</button></div>`:'';
   $('#dBody').innerHTML=`
     ${enrichedNote}
     <div class="fsec">Informations</div>
     <div class="fields">${rows.join('')||'<div class="fl">Aucune donnée.</div>'}</div>
-    ${saveBar}
+    ${resetBar}
     <div class="fsec">Pièces du dossier (${(c.documents||[]).length})</div>
     <div class="doclist">${docs||'<div class="fl">Aucune pièce.</div>'}</div>`;
   $('#dBody').querySelectorAll('.docfile').forEach(b=>{
@@ -1230,9 +1237,45 @@ function openDetail(id){
   $('#dBody').querySelectorAll('.finfo').forEach(b=>{
     b.onclick=e=>{e.stopPropagation();showProv(b);};
   });
-  const sv=$('#dSaveEdits'); if(sv) sv.onclick=()=>saveDetailEdits(id);
+  $('#dBody').querySelectorAll('.fedit').forEach(b=>{
+    b.onclick=e=>{e.stopPropagation();startFieldEdit(b,id);};
+  });
   const rs=$('#dResetEdits'); if(rs) rs.onclick=()=>resetClient(id);
   $('#detail').classList.add('open');
+}
+
+// Édition en ligne d'UN champ : le pencil transforme la cellule en input.
+function startFieldEdit(btn,id){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  const key=btn.dataset.k, label=btn.dataset.label;
+  const fv=btn.closest('.fv');
+  let cur='';
+  if(key==='cin_str') cur=(c.cin||[]).join(' / ');
+  else if(key==='quote_part') cur=(c.quote_part||[]).join(' / ');
+  else if(key==='prix_total'||key==='avance'||key==='reste') cur=c[key]||'';
+  else cur=c[key]||'';
+  fv.innerHTML=`<span class="fedit-wrap">
+    <input class="dedit" value="${esc(cur)}">
+    <button class="feok" title="Valider">✓</button>
+    <button class="fecancel" title="Annuler">×</button></span>`;
+  const inp=fv.querySelector('.dedit'); inp.focus(); inp.select();
+  const commit=async()=>{
+    const val=inp.value.trim();
+    const patch={}; patch[key]=val;
+    const r=await (await fetch('/api/update_client',{method:'POST',headers:H,
+      body:JSON.stringify({id,patch})})).json();
+    if(r.ok){
+      c[key]=val;
+      if(key==='cin_str') c.cin=val.split('/').map(s=>s.trim()).filter(Boolean);
+      if(key==='quote_part') c.quote_part=val.split('/').map(s=>s.trim()).filter(Boolean);
+      if(key==='nom_prenom') c.noms=val.split('/').map(s=>s.trim()).filter(Boolean);
+      c.edited=true; c.edited_at=r.edited_at;
+      openDetail(id); render(); toast('Modifié.');
+    }
+  };
+  fv.querySelector('.feok').onclick=commit;
+  fv.querySelector('.fecancel').onclick=()=>openDetail(id);
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter')commit(); if(e.key==='Escape')openDetail(id); });
 }
 
 async function toggleApprove(id){
@@ -1242,23 +1285,10 @@ async function toggleApprove(id){
     body:JSON.stringify({id,approved:next})})).json();
   if(r.ok){ c.approved=next; c.approved_at=r.approved_at; openDetail(id); render(); }
 }
-async function saveDetailEdits(id){
-  const patch={};
-  $('#dBody').querySelectorAll('.dedit').forEach(inp=>{ patch[inp.dataset.k]=inp.value.trim(); });
-  const r=await (await fetch('/api/update_client',{method:'POST',headers:H,
-    body:JSON.stringify({id,patch})})).json();
-  if(r.ok){
-    const c=CLIENTS.find(x=>x.id===id);
-    Object.assign(c,patch);
-    if(patch.cin_str!==undefined) c.cin=patch.cin_str.split('/').map(s=>s.trim()).filter(Boolean);
-    c.edited=true; c.edited_at=r.edited_at;
-    detailEditMode=false; openDetail(id); render(); toast('Modifications enregistrées.');
-  }
-}
 async function resetClient(id){
   if(!confirm('Annuler toutes vos modifications sur ce bien et revenir aux données extraites ?'))return;
   await fetch('/api/reset_client',{method:'POST',headers:H,body:JSON.stringify({id})});
-  detailEditMode=false; closeDetail();
+  closeDetail();
   await loadClients(); toast('Modifications annulées. Relancez un scan pour réextraire.');
 }
 function docIcon(type){
