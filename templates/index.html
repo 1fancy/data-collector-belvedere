@@ -164,6 +164,9 @@
   thead th.money-h{text-align:right}
   td.cin{font-feature-settings:"tnum";color:#39434f;letter-spacing:.01em}
   .cinok{width:13px;height:13px;color:var(--green-d);margin-left:5px;vertical-align:-2px}
+  .rbadges{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}
+  .rbadge{font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:999px}
+  .rbadge.ok{background:#e4f4ec;color:var(--green-d)} .rbadge.ed{background:#fdf3e0;color:var(--amber)}
   .todo-name{color:var(--amber);font-weight:600;font-style:italic}
   /* largeurs maîtrisées */
   td.name{max-width:220px} td.name b{font-weight:600}
@@ -280,6 +283,20 @@
     justify-content:space-between;gap:12px}
   .dname{font-size:16px;font-weight:600} .dsub{font-size:12px;opacity:.82;margin-top:3px}
   .dbody{padding:18px 20px;overflow:auto;flex:1}
+  .dactions{display:flex;align-items:center;gap:8px;padding:12px 20px;border-bottom:1px solid var(--line-s);
+    flex-wrap:wrap;background:#fbfcfe}
+  .dbtn{padding:8px 14px;border-radius:8px;font-size:12.5px;font-weight:600;background:#eef2f8;
+    color:var(--navy);display:inline-flex;align-items:center;gap:6px}
+  .dbtn:hover{background:#e3e9f3}
+  .dbtn svg{width:14px;height:14px}
+  .dbtn.approved{background:#e4f4ec;color:var(--green-d)}
+  .dstatus{display:flex;flex-direction:column;gap:2px;margin-left:auto;text-align:right}
+  .ds{font-size:10.5px} .ds.ok{color:var(--green-d)} .ds.ed{color:var(--amber)}
+  .frow.edit .fv{flex:1}
+  .dedit{width:100%;padding:6px 9px;border:1px solid var(--blue);border-radius:7px;font-size:12.5px;
+    text-align:right;background:#fff}
+  .dedit:focus{outline:none;box-shadow:0 0 0 3px rgba(11,120,189,.12)}
+  .savebar{display:flex;flex-direction:column;gap:7px;margin:14px 0}
   .enriched-badge{background:#eaf6ea;color:var(--green-d);border:1px solid #cfe8cf;
     padding:9px 12px;border-radius:9px;font-size:12px;margin-bottom:16px}
   .fsec{font-size:11px;font-weight:700;color:var(--mute);text-transform:uppercase;
@@ -414,6 +431,13 @@
   .folderitem .fi-rm:hover{background:#e3e9f3;color:var(--red)}
   .folderempty{font-size:12px;color:var(--faint);padding:4px 2px}
   .addfolder{font-size:12.5px;padding:8px}
+  .srclock{background:#f0f6ff;border:1px solid #cfe0f7;border-radius:10px;padding:11px 12px;font-size:12px}
+  .srclock .sl-top{color:var(--navy);margin-bottom:7px}
+  .srclock .sl-lock{display:flex;align-items:flex-start;gap:7px;color:var(--mute);line-height:1.35;cursor:pointer}
+  .srclock .sl-lock input{margin-top:2px;flex-shrink:0;accent-color:var(--navy)}
+  .srclock .sl-flush{margin-top:9px;width:100%;padding:7px;border-radius:7px;background:#fdeceb;
+    color:var(--red);font-size:12px;font-weight:600}
+  .srclock .sl-flush:hover{background:#fbdddb}
 
   /* row selection */
   td.selcol,th.selcol{width:34px;text-align:center;padding-left:8px;padding-right:8px}
@@ -494,6 +518,8 @@
     </label>
 
     <button class="btn green block" id="scanBtn">Lancer le scan</button>
+
+    <div class="srclock" id="srcLock" style="display:none"></div>
 
     <div class="scan" id="scanCard">
       <h3 id="scanPhase">Statut</h3>
@@ -601,6 +627,7 @@
       <div><div class="dname" id="dName">Client</div><div class="dsub" id="dSub"></div></div>
       <button class="x" onclick="closeDetail()" title="Fermer">×</button>
     </div>
+    <div class="dactions" id="dActions"></div>
     <div class="dbody" id="dBody"></div>
   </div>
 </div>
@@ -920,13 +947,20 @@ function owners(c){
   const cins=c.cin||[], qps=c.quote_part||[];
   return noms.map((n,i)=>({nom:n, cin:cins[i]||'', qp:qps[i]||(qps.length===1&&noms.length===1?qps[0]:'')}));
 }
+function statusBadges(c){
+  let b='';
+  if(c.approved) b+='<span class="rbadge ok" title="Approuvé le '+esc(c.approved_at||'')+'">✓ approuvé</span>';
+  if(c.edited) b+='<span class="rbadge ed" title="Modifié le '+esc(c.edited_at||'')+'">modifié</span>';
+  return b?`<div class="rbadges">${b}</div>`:'';
+}
 function nameCell(c){
-  if(!c.nom_prenom) return '<span class="todo-name">à compléter</span>'
+  const bad=statusBadges(c);
+  if(!c.nom_prenom) return '<span class="todo-name">à compléter</span>'+bad
     +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
   const os=owners(c);
-  if(os.length<=1) return `<b>${esc(c.nom_prenom)}</b>`
+  if(os.length<=1) return `<b>${esc(c.nom_prenom)}</b>`+bad
     +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
-  return os.map(o=>`<div class="owln"><b>${esc(o.nom)}</b></div>`).join('')
+  return os.map(o=>`<div class="owln"><b>${esc(o.nom)}</b></div>`).join('')+bad
     +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
 }
 const CHECK='<svg class="cinok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" title="Vérifiée sur la carte d\'identité"><path d="M20 6 9 17l-5-5"/></svg>';
@@ -1115,22 +1149,52 @@ function infoIcon(field,prov){
   return `<button class="finfo${n>1?' multi':''}" data-srcs="${data}" title="${title}" aria-label="${title}">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>${n>1?`<span class="cnt">${n}</span>`:''}</button>`;
 }
+let detailEditMode=false;
 function openDetail(id){
   const c=CLIENTS.find(x=>x.id===id); if(!c)return;
   const prov=c.provenance||{};
   $('#dName').textContent=c.nom_prenom||`Îlot ${c.ilot} · ${c.immeuble}${c.numero}`;
   $('#dSub').textContent=`Îlot ${c.ilot} · Immeuble ${c.immeuble} · ${c.type_bien} N° ${c.numero}`;
+  // Barre d'actions : approuver / modifier + statut.
+  const apCls=c.approved?'approved':'';
+  $('#dActions').innerHTML=`
+    <button class="dbtn ${apCls}" id="dApprove">${c.approved
+      ?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Approuvé'
+      :'Approuver'}</button>
+    <button class="dbtn" id="dEdit">${detailEditMode?'Terminer':'Modifier'}</button>
+    ${(c.edited||c.approved)?`<div class="dstatus">
+      ${c.approved?`<span class="ds ok">Approuvé le ${esc(c.approved_at||'')}</span>`:''}
+      ${c.edited?`<span class="ds ed">Modifié le ${esc(c.edited_at||'')}</span>`:''}
+    </div>`:''}`;
+  $('#dApprove').onclick=()=>toggleApprove(id);
+  $('#dEdit').onclick=()=>{ detailEditMode=!detailEditMode; openDetail(id); };
   const rows=[];
-  const add=(l,v,field)=>{ if(v) rows.push(
-    `<div class="frow"><span class="fl">${l}</span>
-     <span class="fv">${esc(v)}${field?infoIcon(field,prov):''}</span></div>`); };
-  // C.I.N avec coche verte si confirmée sur la carte d'identité.
-  const cinHtml=(c.cin||[]).map(code=>cinOne(code,c)).join(' / ');
-  if(cinHtml) rows.push(`<div class="frow"><span class="fl">C.I.N</span>
-    <span class="fv">${cinHtml}${infoIcon('cin',prov)}</span></div>`);
-  if((c.cin_extras||[]).length) rows.push(`<div class="frow"><span class="fl">Autres codes détectés</span>
-    <span class="fv cin-extra">${c.cin_extras.map(esc).join(' / ')}<div class="xnote">codes trouvés dans les fiches, non confirmés par une carte d'identité</div></span></div>`);
-  add('Quote-part',(c.quote_part||[]).join(' / '),'quote_part');
+  // Champs modifiables manuellement (clé = champ du client).
+  const EDITABLE={nom_prenom:1,cin_str:1,tel:1,adresse1:1,ville:1,pays:1,
+    quote_part:1,prix_total:1,avance:1,reste:1,statut:1,date_courrier:1,
+    superficie:1,etage:1,observation:1};
+  const add=(l,v,field,editKey)=>{
+    const ek=editKey||field;
+    if(detailEditMode && ek && EDITABLE[ek]){
+      rows.push(`<div class="frow edit"><span class="fl">${l}</span>
+        <span class="fv"><input class="dedit" data-k="${ek}" value="${esc(v||'')}"></span></div>`);
+    } else if(v) {
+      rows.push(`<div class="frow"><span class="fl">${l}</span>
+        <span class="fv">${esc(v)}${field?infoIcon(field,prov):''}</span></div>`);
+    }
+  };
+  add('Nom / Prénom',c.nom_prenom,null,'nom_prenom');
+  // C.I.N avec coche verte si confirmée (sauf en mode édition où on la saisit).
+  if(detailEditMode){
+    add('C.I.N',(c.cin||[]).join(' / '),null,'cin_str');
+  } else {
+    const cinHtml=(c.cin||[]).map(code=>cinOne(code,c)).join(' / ');
+    if(cinHtml) rows.push(`<div class="frow"><span class="fl">C.I.N</span>
+      <span class="fv">${cinHtml}${infoIcon('cin',prov)}</span></div>`);
+    if((c.cin_extras||[]).length) rows.push(`<div class="frow"><span class="fl">Autres codes détectés</span>
+      <span class="fv cin-extra">${c.cin_extras.map(esc).join(' / ')}<div class="xnote">codes trouvés dans les fiches, non confirmés par une carte d'identité</div></span></div>`);
+  }
+  add('Quote-part',(c.quote_part||[]).join(' / '),'quote_part','quote_part');
   add('Date de naissance',c.naissance,'naissance');
   add('C.I.N valable jusqu\'au',c.cin_validite,'cin_validite');
   add('Père',c.pere,'pere'); add('Mère',c.mere,'mere');
@@ -1150,10 +1214,14 @@ function openDetail(id){
   }).join('');
   const enrichedNote=(c.naissance||c.pere||c.recu_num)
     ?'<div class="enriched-badge">Certaines données sont lues sur les documents scannés. L\'icône d\'information indique leur provenance.</div>':'';
+  const saveBar=detailEditMode
+    ?`<div class="savebar"><button class="btn green block" id="dSaveEdits">Enregistrer les modifications</button>
+      <button class="btn ghost block" id="dResetEdits">Annuler mes modifications (revenir à l'extrait)</button></div>`:'';
   $('#dBody').innerHTML=`
     ${enrichedNote}
     <div class="fsec">Informations</div>
     <div class="fields">${rows.join('')||'<div class="fl">Aucune donnée.</div>'}</div>
+    ${saveBar}
     <div class="fsec">Pièces du dossier (${(c.documents||[]).length})</div>
     <div class="doclist">${docs||'<div class="fl">Aucune pièce.</div>'}</div>`;
   $('#dBody').querySelectorAll('.docfile').forEach(b=>{
@@ -1162,7 +1230,36 @@ function openDetail(id){
   $('#dBody').querySelectorAll('.finfo').forEach(b=>{
     b.onclick=e=>{e.stopPropagation();showProv(b);};
   });
+  const sv=$('#dSaveEdits'); if(sv) sv.onclick=()=>saveDetailEdits(id);
+  const rs=$('#dResetEdits'); if(rs) rs.onclick=()=>resetClient(id);
   $('#detail').classList.add('open');
+}
+
+async function toggleApprove(id){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  const next=!c.approved;
+  const r=await (await fetch('/api/approve_client',{method:'POST',headers:H,
+    body:JSON.stringify({id,approved:next})})).json();
+  if(r.ok){ c.approved=next; c.approved_at=r.approved_at; openDetail(id); render(); }
+}
+async function saveDetailEdits(id){
+  const patch={};
+  $('#dBody').querySelectorAll('.dedit').forEach(inp=>{ patch[inp.dataset.k]=inp.value.trim(); });
+  const r=await (await fetch('/api/update_client',{method:'POST',headers:H,
+    body:JSON.stringify({id,patch})})).json();
+  if(r.ok){
+    const c=CLIENTS.find(x=>x.id===id);
+    Object.assign(c,patch);
+    if(patch.cin_str!==undefined) c.cin=patch.cin_str.split('/').map(s=>s.trim()).filter(Boolean);
+    c.edited=true; c.edited_at=r.edited_at;
+    detailEditMode=false; openDetail(id); render(); toast('Modifications enregistrées.');
+  }
+}
+async function resetClient(id){
+  if(!confirm('Annuler toutes vos modifications sur ce bien et revenir aux données extraites ?'))return;
+  await fetch('/api/reset_client',{method:'POST',headers:H,body:JSON.stringify({id})});
+  detailEditMode=false; closeDetail();
+  await loadClients(); toast('Modifications annulées. Relancez un scan pour réextraire.');
 }
 function docIcon(type){
   if(type==='cin') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M13 9h5M13 13h5M5 16h8"/></svg>';
@@ -1376,6 +1473,23 @@ async function loadProject(){
     `<button class="pmrecent" data-path="${encodeURIComponent(r.path)}">${esc(r.name)}</button>`).join('')
     || '<div class="setnote" style="padding:4px 11px">Aucun autre projet.</div>';
   $('#pmRecent').querySelectorAll('.pmrecent').forEach(b=>b.onclick=()=>openProject(decodeURIComponent(b.dataset.path)));
+  // Bandeau source Excel / verrouillage.
+  const sl=$('#srcLock');
+  if(d.source_excel){
+    sl.style.display='';
+    sl.innerHTML=`<div class="sl-top">Source : <b>${esc(d.source_excel)}</b> (Excel)</div>
+      <label class="sl-lock"><input type="checkbox" id="slToggle" ${d.source_lock?'checked':''}>
+        Se limiter à cette liste (ne pas ajouter de nouveaux biens au scan)</label>
+      <button class="sl-flush" id="slFlush">Vider ces données</button>`;
+    $('#slToggle').onclick=async e=>{ await fetch('/api/source_lock',{method:'POST',headers:H,
+      body:JSON.stringify({locked:e.target.checked})}); toast(e.target.checked?'Verrouillé sur l\'Excel.':'Déverrouillé.'); };
+    $('#slFlush').onclick=flushData;
+  } else { sl.style.display='none'; }
+}
+async function flushData(){
+  if(!confirm('Vider toutes les données de ce projet ? (les projets enregistrés ailleurs ne sont pas touchés)'))return;
+  await fetch('/api/flush',{method:'POST',headers:H});
+  SELECTED.clear(); location.reload();
 }
 $('#projBtn').onclick=e=>{e.stopPropagation();$('#projMenu').classList.toggle('open');};
 document.addEventListener('click',e=>{ if(!e.target.closest('#projMenu')&&!e.target.closest('#projBtn'))$('#projMenu').classList.remove('open'); });

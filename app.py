@@ -78,13 +78,22 @@ def run_scan(folders, mode, auto_letters, deep=True):
             STATE["msg"] = msg
             if pct is not None:
                 STATE["pct"] = int(pct * (0.7 if auto_letters else 1.0))
+    locked = bool(store.get_setting("source_lock", False))
     try:
         with LOCK:
             STATE.update(status="running", pct=0, error="",
                          msg="Démarrage du scan...", phase="scan")
-            existing = STATE["clients"] if mode == "fill" else None
-        clients = extract.scan(folders, mode=mode, existing=existing,
+            existing = STATE["clients"] if (mode == "fill" or locked) else None
+        # Si verrouillé sur la source (Excel importé) : on complète seulement les
+        # clients existants, on n'en ajoute pas de nouveaux.
+        scan_mode = "fill" if locked else mode
+        clients = extract.scan(folders, mode=scan_mode, existing=existing,
                                deep=deep, progress=prog)
+        if locked and existing:
+            keys = {store.bkey_of(c) for c in existing}
+            clients = [c for c in clients if store.bkey_of(c) in keys]
+            for idx, c in enumerate(clients):
+                c["id"] = idx + 1
 
         with LOCK:
             STATE["clients"] = clients
@@ -265,6 +274,8 @@ class Handler(BaseHTTPRequestHandler):
             with LOCK:
                 root = STATE["root"]
                 cl = STATE["clients"]
+            # Appliquer les overrides (édition + approbation) qui survivent aux scans.
+            store.apply_overrides(cl)
             # refléter l'état réel du cache des lettres (sans régénérer)
             for c in cl:
                 fol = os.path.join(root, "Letters", letters.folder_name(c))
@@ -285,7 +296,9 @@ class Handler(BaseHTTPRequestHandler):
         if p == "/api/project":
             return self._send(200, {"current": store.current_project_info(),
                                     "recent": store.recent_projects(),
-                                    "folders": store.get_folders()})
+                                    "folders": store.get_folders(),
+                                    "source_excel": store.get_setting("source_excel", ""),
+                                    "source_lock": bool(store.get_setting("source_lock", False))})
 
         if p == "/api/folders":
             return self._send(200, {"folders": store.get_folders()})
@@ -492,18 +505,64 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"ok": True})
 
         if u.path == "/api/update_client":
+            # Édition manuelle PERSISTANTE (survit aux re-scans via overrides).
             cid = body.get("id")
             patch = body.get("patch", {})
             allowed = {"statut", "observation", "tel", "adresse1", "ville", "pays",
-                       "date_courrier", "lettre_envoyee"}
+                       "date_courrier", "lettre_envoyee", "nom_prenom", "cin_str",
+                       "quote_part", "prix_total", "avance", "reste", "type_bien",
+                       "etage", "superficie"}
             patch = {k: v for k, v in patch.items() if k in allowed}
-            updated = store.update_client(cid, patch)
-            if updated is None:
-                return self._send(404, {"ok": False})
             with LOCK:
-                for i, c in enumerate(STATE["clients"]):
-                    if c["id"] == cid:
-                        STATE["clients"][i].update(patch)
+                c = next((x for x in STATE["clients"] if x["id"] == cid), None)
+            if not c:
+                return self._send(404, {"ok": False, "error": "client"})
+            o = store.set_override(store.bkey_of(c), patch=patch)
+            with LOCK:
+                c.update(patch)
+                c["edited"] = True
+                c["edited_at"] = o["edited_at"]
+            return self._send(200, {"ok": True, "edited_at": o["edited_at"]})
+
+        if u.path == "/api/approve_client":
+            cid = body.get("id")
+            approved = bool(body.get("approved", True))
+            with LOCK:
+                c = next((x for x in STATE["clients"] if x["id"] == cid), None)
+            if not c:
+                return self._send(404, {"ok": False})
+            o = store.set_override(store.bkey_of(c), approved=approved)
+            with LOCK:
+                c["approved"] = approved
+                c["approved_at"] = o["approved_at"]
+            return self._send(200, {"ok": True, "approved_at": o["approved_at"]})
+
+        if u.path == "/api/reset_client":
+            # Annuler les modifications manuelles d'un bien (revenir à l'extrait).
+            cid = body.get("id")
+            with LOCK:
+                c = next((x for x in STATE["clients"] if x["id"] == cid), None)
+            if c:
+                store.clear_override(store.bkey_of(c))
+            return self._send(200, {"ok": True})
+
+        if u.path == "/api/source_lock":
+            # Verrouiller/déverrouiller sur la source Excel importée.
+            store.set_setting("source_lock", bool(body.get("locked")))
+            return self._send(200, {"ok": True, "locked": bool(body.get("locked"))})
+
+        if u.path == "/api/flush":
+            # Vider les données de CE projet (clients + verrouillage source).
+            # Les projets enregistrés ailleurs ne sont pas touchés.
+            store.save_clients([], STATE["root"], "")
+            store.set_setting("source_lock", False)
+            store.set_setting("source_excel", "")
+            store.set_folders([])
+            with LOCK:
+                STATE["clients"] = []
+                STATE["status"] = "idle"; STATE["pct"] = 0
+                STATE["msg"] = "Données vidées."
+            save_data()
             return self._send(200, {"ok": True})
 
         # ---- projets ----
@@ -581,6 +640,10 @@ class Handler(BaseHTTPRequestHandler):
         # Nouveau projet basé sur le nom du fichier importé (jamais modifié).
         base = os.path.splitext(fname or "Import Excel")[0]
         store.new_project("Import " + base)
+        # Marquer la source Excel et activer le verrouillage par défaut :
+        # un scan de dossiers ne fera qu'ENRICHIR ces clients, sans en ajouter.
+        store.set_setting("source_excel", base)
+        store.set_setting("source_lock", True)
         from datetime import date as _date
         with LOCK:
             STATE["clients"] = clients

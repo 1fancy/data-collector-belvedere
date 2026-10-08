@@ -114,6 +114,13 @@ def init():
     CREATE TABLE IF NOT EXISTS settings (
         key TEXT PRIMARY KEY, value TEXT
     );
+    CREATE TABLE IF NOT EXISTS overrides (
+        bkey TEXT PRIMARY KEY,
+        patch TEXT,            -- JSON des champs modifiés manuellement
+        approved INTEGER DEFAULT 0,
+        edited_at TEXT,
+        approved_at TEXT
+    );
     """)
     # Migration : si la table clients a une contrainte UNIQUE sur bkey (ancien
     # schéma), elle écrase les doublons. On la recrée sans cette contrainte.
@@ -246,6 +253,105 @@ def has_data():
     n = con.execute("SELECT COUNT(*) n FROM clients").fetchone()["n"]
     con.close()
     return n > 0
+
+
+# --------------------------------------------------------------------------- #
+#  Overrides persistants : approbation + modifications manuelles               #
+#  (identifiés par bkey = ilot|imm|n°|type, donc survivent aux re-scans)       #
+# --------------------------------------------------------------------------- #
+
+def bkey_of(c):
+    return _bkey(c)
+
+
+def get_overrides():
+    """Tous les overrides, en dict {bkey: {patch, approved, edited_at, approved_at}}."""
+    init()
+    con = _connect()
+    rows = con.execute("SELECT * FROM overrides").fetchall()
+    con.close()
+    out = {}
+    for r in rows:
+        try:
+            patch = json.loads(r["patch"] or "{}")
+        except (ValueError, TypeError):
+            patch = {}
+        out[r["bkey"]] = {"patch": patch, "approved": bool(r["approved"]),
+                          "edited_at": r["edited_at"] or "",
+                          "approved_at": r["approved_at"] or ""}
+    return out
+
+
+def _now():
+    # Timestamp fourni par l'appelant impossible ici (pas de Date dispo côté
+    # script workflow) ; mais côté serveur Python on peut l'utiliser.
+    import datetime
+    return datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+
+
+def set_override(bkey, patch=None, approved=None):
+    """Enregistre/maj un override. patch=dict (fusionné), approved=bool."""
+    init()
+    con = _connect()
+    row = con.execute("SELECT * FROM overrides WHERE bkey=?", (bkey,)).fetchone()
+    cur_patch = {}
+    edited_at = approved_at = ""
+    cur_approved = 0
+    if row:
+        try:
+            cur_patch = json.loads(row["patch"] or "{}")
+        except (ValueError, TypeError):
+            cur_patch = {}
+        cur_approved = row["approved"] or 0
+        edited_at = row["edited_at"] or ""
+        approved_at = row["approved_at"] or ""
+    if patch:
+        cur_patch.update(patch)
+        edited_at = _now()
+    if approved is not None:
+        cur_approved = 1 if approved else 0
+        approved_at = _now() if approved else ""
+    con.execute(
+        "INSERT OR REPLACE INTO overrides(bkey, patch, approved, edited_at, approved_at) "
+        "VALUES (?,?,?,?,?)",
+        (bkey, json.dumps(cur_patch, ensure_ascii=False), cur_approved,
+         edited_at, approved_at))
+    con.commit()
+    con.close()
+    return {"patch": cur_patch, "approved": bool(cur_approved),
+            "edited_at": edited_at, "approved_at": approved_at}
+
+
+def clear_override(bkey):
+    init()
+    con = _connect()
+    con.execute("DELETE FROM overrides WHERE bkey=?", (bkey,))
+    con.commit()
+    con.close()
+
+
+def apply_overrides(clients):
+    """Applique les overrides (édition + approbation) sur une liste de clients.
+
+    Les champs modifiés manuellement écrasent les valeurs extraites, et on
+    ajoute les marqueurs `edited`, `edited_at`, `approved`, `approved_at`.
+    """
+    ov = get_overrides()
+    for c in clients:
+        o = ov.get(bkey_of(c))
+        if not o:
+            c["edited"] = False
+            c["approved"] = False
+            continue
+        if o["patch"]:
+            c.update(o["patch"])
+            if "cin_str" in o["patch"]:
+                c["cin"] = [x.strip() for x in str(o["patch"]["cin_str"]).split("/") if x.strip()]
+        c["edited"] = bool(o["patch"])
+        c["edited_at"] = o["edited_at"]
+        c["approved"] = o["approved"]
+        c["approved_at"] = o["approved_at"]
+    return clients
 
 
 def get_folders():
