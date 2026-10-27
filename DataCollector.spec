@@ -16,10 +16,13 @@ block_cipher = None
 datas = [
     ("templates/index.html", "templates"),
     ("static/logo.png", "static"),
+    ("static/corail_logo.png", "static"),
     ("static/app.ico", "static"),
     ("static/ocr_vision.swift", "static"),
+    ("static/DejaVuSans.ttf", "static"),
+    ("static/DejaVuSans-Bold.ttf", "static"),
 ]
-hidden = ["paths", "app", "extract", "letters", "store", "ocr", "openpyxl", "docx"]
+hidden = ["paths", "app", "extract", "letters", "store", "ocr", "geo", "suivi", "openpyxl", "docx", "fpdf"]
 binaries = []
 
 # OCR hors-ligne intégré (RapidOCR) : embarqué s'il est installé. Il apporte

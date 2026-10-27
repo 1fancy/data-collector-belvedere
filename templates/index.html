@@ -105,7 +105,7 @@
 
   /* ---- summary strip ---- */
   .summary{display:flex;gap:0;background:var(--card);border:1px solid var(--line);
-    border-radius:12px;overflow:hidden;margin-bottom:18px;box-shadow:var(--shadow)}
+    border-radius:12px;overflow:hidden;margin:4px 16px 12px;box-shadow:var(--shadow)}
   .summary .s{flex:1;padding:15px 18px;border-right:1px solid var(--line-s)}
   .summary .s:last-child{border-right:0}
   .summary .n{font-size:24px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -116,6 +116,49 @@
   .summary .s.clickdup{cursor:pointer} .summary .s.clickdup:hover{background:#fdf7e6}
   .summary .s.clickdup.active{background:#fdf3e0;box-shadow:inset 0 -3px 0 var(--amber)}
   .summary .s.sep{border-left:2px solid var(--line)}
+  .summary .s.free .n{color:var(--faint)}
+  .summary .s.test .n{color:#9333ea}
+  .summary .s.deal .n{color:var(--navy)}
+  .summary .s.deal{background:linear-gradient(180deg,#f4f8ff,#fff)}
+  /* Filtre par complétude (infos requises) */
+  .fldfilter{position:relative;display:inline-block}
+  .fldbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;
+    border-radius:8px;padding:7px 11px;font-size:13px;color:var(--ink);cursor:pointer;font-family:inherit}
+  .fldbtn:hover{background:#f6f8fc}
+  .fldbtn.active{border-color:var(--blue);color:var(--blue);background:#f1f7ff}
+  .fldpop{position:absolute;top:calc(100% + 6px);left:0;z-index:40;width:250px;background:#fff;
+    border:1px solid var(--line);border-radius:11px;box-shadow:0 12px 36px rgba(0,0,0,.14);padding:10px;display:none}
+  .fldpop.open{display:block}
+  .fldmode{display:flex;flex-direction:column;gap:5px;padding:4px 4px 9px;border-bottom:1px solid var(--line);margin-bottom:8px}
+  .fldsw{font-size:12.5px;color:var(--ink);display:flex;align-items:center;gap:7px;cursor:pointer}
+  .fldlist{display:flex;flex-direction:column;gap:3px;max-height:230px;overflow:auto}
+  .fldopt{display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:7px;font-size:13px;cursor:pointer}
+  .fldopt:hover{background:#f6f8fc}
+  .fldopt input{width:15px;height:15px}
+  .fldopt .fldpct{margin-left:auto;font-size:11px;color:var(--faint)}
+  .fldfoot{display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:8px;border-top:1px solid var(--line)}
+  .fldhint{font-size:11px;color:var(--faint);line-height:1.3}
+  .fldfoot .btn{padding:5px 10px;font-size:12px}
+  /* Panneau qualité des données */
+  .quality{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:14px 18px;margin:0 16px 14px;box-shadow:var(--shadow)}
+  .qhead{font-size:13px;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .qbadges{display:inline-flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+  .qb{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:11px}
+  .qb.ok{background:#e8f5ec;color:var(--green-d)} .qb.warn{background:#fdf3e0;color:#b8740a}
+  .qb.bad{background:#fdecec;color:var(--red)}
+  .qbars{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px 20px}
+  .qrow{display:flex;align-items:center;gap:9px;font-size:12px}
+  .qlbl{flex:0 0 72px;color:var(--mute)}
+  .qbar{flex:1;height:7px;background:#eef1f5;border-radius:4px;overflow:hidden}
+  .qfill{display:block;height:100%;border-radius:4px;transition:width .3s}
+  .qpct{flex:0 0 92px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .qpct small{color:var(--faint)}
+  .cfrow{border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:8px}
+  .cfkey{font-size:12px;color:var(--mute);margin-bottom:6px}
+  .cfpair{font-size:13px;margin:2px 0}
+  .cftag{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:9px;margin-right:7px}
+  .cftag.xl{background:#eef3fb;color:var(--navy)} .cftag.doc{background:#fdf3e0;color:#b8740a}
 
   /* ---- table card ---- */
   .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;
@@ -156,18 +199,21 @@
   tr.dupstart td{border-top:2px solid var(--amber)}
   .dupbadge{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:700;color:#fff;
     background:var(--amber);padding:1px 6px;border-radius:999px;vertical-align:middle;text-transform:uppercase}
+  .dupbadge.resale{background:#2e9e6b}
   td.name{font-weight:600;min-width:160px}
   td.name .note{font-weight:400;color:var(--mute);font-size:11.5px;margin-top:2px}
-  td.addr{max-width:260px;color:#39434f}
+  td.addr{max-width:240px;color:#39434f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   td.cin,td.tel,td.money,td.qp{font-variant-numeric:tabular-nums;white-space:nowrap}
   td.money{text-align:right}
   thead th.money-h{text-align:right}
   td.cin{font-feature-settings:"tnum";color:#39434f;letter-spacing:.01em}
+  .piecetag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;padding:0 4px;border-radius:3px;background:#fff1e6;color:#b45309;vertical-align:middle}
   .cinok{width:13px;height:13px;color:var(--green-d);margin-left:5px;vertical-align:-2px}
   .rbadges{display:flex;gap:4px;margin-top:3px;flex-wrap:wrap}
   .rbadge{font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:999px}
   .rbadge.ok{background:#e4f4ec;color:var(--green-d)} .rbadge.ed{background:#fdf3e0;color:var(--amber)}
   .todo-name{color:var(--amber);font-weight:600;font-style:italic}
+  .free-name{color:var(--faint);font-style:italic}
   /* largeurs maîtrisées */
   td.name{max-width:220px} td.name b{font-weight:600}
   td.ttype,thead th:nth-child(5){white-space:nowrap}
@@ -214,7 +260,9 @@
   .empty h3{margin:0 0 6px;color:var(--ink);font-weight:600}
 
   /* ---- modals ---- */
-  .overlay{position:fixed;inset:0;background:rgba(15,28,54,.55);backdrop-filter:blur(2px);
+  /* Pas de backdrop-filter:blur — il force le navigateur à flouter toute la
+     page (158 lignes) à chaque ouverture et rend les modales lentes. */
+  .overlay{position:fixed;inset:0;background:rgba(15,28,54,.62);
     display:none;align-items:center;justify-content:center;z-index:60;padding:20px}
   .overlay.open{display:flex}
   .dialog{background:var(--card);border-radius:14px;width:min(500px,100%);overflow:hidden;
@@ -268,12 +316,62 @@
     border-radius:9px;padding:0 11px;background:#fbfcfe;color:var(--faint)}
   .pksearch input{border:0;background:none;padding:9px 0;flex:1;font-size:13px;color:var(--ink)}
   .pksearch input:focus{outline:none}
+  .pksearch .pkgo{padding:5px 14px;font-size:12.5px;margin:4px 0}
 
   /* ---- documents cell + detail drawer ---- */
   .docs-btn{padding:6px 11px;border-radius:8px;font-size:12px;font-weight:600;
     background:#eef3fb;color:var(--navy);display:inline-flex;align-items:center;gap:6px}
   .docs-btn:hover{background:#e2eaf7}
   .muted-dash{color:var(--faint)}
+  .agtag{display:inline-block;padding:2px 9px;border-radius:11px;font-size:11.5px;font-weight:600;
+    background:#eef3fb;color:var(--navy);border:1px solid #d7e2f2;white-space:nowrap}
+  /* Cellule parcours de livraison */
+  .dvcell{display:flex;flex-direction:column;gap:5px;min-width:190px}
+  .dvchip{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;
+    background:color-mix(in srgb,var(--c) 14%,#fff);color:var(--c);border:1px solid color-mix(in srgb,var(--c) 35%,#fff);white-space:nowrap}
+  .dvdots{display:flex;gap:3px}
+  .dvdot{width:14px;height:5px;border-radius:3px;background:#e2e7ef}
+  .dvdot.on{background:var(--c)}
+  .dvfoot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .dvact{border:1px solid var(--blue);color:var(--blue);background:#fff;border-radius:7px;
+    padding:3px 9px;font-size:11.5px;font-weight:600;cursor:pointer;transition:.12s}
+  .dvact:hover{background:var(--blue);color:#fff}
+  .dvmore{border:none;background:none;color:var(--mute);font-size:11px;cursor:pointer;text-decoration:underline}
+  .dvdone{color:var(--green);font-weight:700;font-size:12px}
+  /* Tiroir parcours de livraison */
+  .dvhead{background:#f6f8fc;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+  .dvhead .dvnext{font-size:13px;color:var(--ink);margin:8px 0 10px}
+  .btn.block{display:block;width:100%;text-align:center}
+  .dvsec{margin-bottom:14px}
+  .dvsech{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--mute);
+    padding-bottom:6px;margin-bottom:8px;border-bottom:1px solid var(--line)}
+  .dvsech.on{color:var(--navy)}
+  .dvnum{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;
+    background:#e2e7ef;color:var(--mute);font-size:11px;font-weight:700}
+  .dvsech.on .dvnum{background:var(--navy);color:#fff}
+  .dvfield{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .dvfl{flex:0 0 46%;font-size:12.5px;color:var(--mute)}
+  .dvinp{flex:1;border:1px solid var(--line);border-radius:7px;padding:6px 9px;font-size:13px;font-family:inherit}
+  .dvinp:focus{outline:none;border-color:var(--blue)}
+  .dvhead .dvprog{margin-left:8px;font-size:11.5px;color:var(--mute);font-weight:600}
+  /* Timeline (passé) */
+  .tlsec,.actsec{margin-bottom:16px}
+  .tlh{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);margin-bottom:10px}
+  .timeline{position:relative;padding-left:4px}
+  .tlrow{display:flex;gap:11px;padding-bottom:13px;position:relative}
+  .tlrow:not(:last-child)::before{content:"";position:absolute;left:5px;top:14px;bottom:-1px;width:2px;background:var(--line)}
+  .tldot{width:12px;height:12px;border-radius:50%;background:var(--c);flex:0 0 auto;margin-top:2px;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 18%,#fff);z-index:1}
+  .tlt{font-size:13.5px;font-weight:600;color:var(--ink)}
+  .tlmeta{font-size:12px;color:var(--mute);margin-top:1px}
+  .tlempty{font-size:13px;color:var(--mute);font-style:italic}
+  /* Actions futures (scénario) */
+  .actbtn{display:block;width:100%;text-align:left;border:1.5px solid var(--blue);color:var(--blue);background:#fff;
+    border-radius:9px;padding:11px 13px;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:8px;transition:.12s}
+  .actbtn:hover{background:var(--blue);color:#fff}
+  .actbtn.warn{border-color:#c9780b;color:#c9780b}.actbtn.warn:hover{background:#c9780b;color:#fff}
+  .actbtn.alt{border-color:#5a4fc4;color:#5a4fc4}.actbtn.alt:hover{background:#5a4fc4;color:#fff}
+  .dvtoggle{border:none;background:none;color:var(--mute);font-size:12.5px;cursor:pointer;text-decoration:underline;padding:6px 0}
+  .dvsub{margin:10px 0}
   .dot-enriched{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
   .detail{justify-content:flex-end;padding:0}
   .drawer{background:var(--card);width:min(520px,100%);height:100%;display:flex;flex-direction:column;
@@ -405,6 +503,9 @@
     font-size:16px;text-align:center;margin-bottom:10px;letter-spacing:.1em}
   .gatebox input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,120,189,.14)}
   .gateerr{color:var(--red);font-size:12.5px;min-height:18px;margin-bottom:6px}
+  .gateremember{display:flex;align-items:center;gap:8px;justify-content:center;font-size:12.5px;
+    color:var(--mute);margin:2px 0 14px;cursor:pointer}
+  .gateremember input{width:auto;margin:0;accent-color:var(--navy)}
   .gatepub{margin-top:16px;font-size:11px;color:var(--faint)}
 
   /* settings */
@@ -456,6 +557,166 @@
   .srclock .sl-flush{margin-top:9px;width:100%;padding:7px;border-radius:7px;background:#fdeceb;
     color:var(--red);font-size:12px;font-weight:600}
   .srclock .sl-flush:hover{background:#fbdddb}
+  .srclock .sl-save{margin-top:9px;width:100%;padding:8px;border-radius:7px;background:var(--navy);
+    color:#fff;font-size:12px;font-weight:600;border:0;cursor:pointer}
+  .srclock .sl-save:hover{filter:brightness(1.08)}
+  .srclock .sl-save:disabled{opacity:.6;cursor:default}
+  .srclock .sl-bks{margin-top:8px;font-size:11px;color:var(--mute)}
+  .srclock .sl-bks b{color:var(--navy);font-weight:600}
+  .srclock .sl-bks ul{margin:4px 0 0;padding-left:16px;max-height:84px;overflow:auto}
+
+  /* démarrage : choix de source */
+  .startopts{padding:10px 22px 4px;display:flex;flex-direction:column;gap:12px}
+  .startopt{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;
+    padding:16px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer;
+    transition:border-color .15s,background .15s}
+  .startopt:hover{border-color:var(--navy);background:#f7faff}
+  .startopt svg{width:26px;height:26px;color:var(--navy);flex-shrink:0;margin-top:2px}
+  .startopt strong{display:block;font-size:14.5px;color:var(--ink);margin-bottom:3px}
+  .startopt span{display:block;font-size:12.5px;color:var(--mute);line-height:1.45}
+
+  /* fichiers dans le sélecteur Excel */
+  .pkfile{display:flex;align-items:center;gap:10px;width:100%;padding:9px 12px;border:0;background:none;
+    cursor:pointer;border-radius:8px;text-align:left}
+  .pkfile:hover{background:#eef4ff}
+  .pkfile svg{width:17px;height:17px;color:#1a7a3c;flex-shrink:0}
+  .pkfile .pknm{flex:1;font-size:13px;min-width:0}
+  .pkfile .pknm small{display:block;font-size:10.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pkfile .pkdate{font-size:11px;color:var(--mute);flex-shrink:0}
+
+  /* table de correspondance */
+  .mapbody{padding:4px 22px;max-height:60vh;overflow:auto}
+  .mapsheet{margin:14px 0 6px}
+  .mapsheet-h{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--navy);font-weight:600;margin-bottom:8px}
+  .mapsheet-h .mapbadge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px}
+  .mapbadge.ok{background:#e8f6ec;color:#1a7a3c}
+  .mapbadge.no{background:#fdeceb;color:var(--red)}
+  table.maptbl{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.maptbl th{text-align:left;color:var(--mute);font-weight:600;font-size:11px;
+    text-transform:uppercase;letter-spacing:.03em;padding:4px 8px;border-bottom:1px solid var(--line)}
+  table.maptbl td{padding:6px 8px;border-bottom:1px solid #f0f2f5;vertical-align:middle}
+  table.maptbl .mapchk{width:34px;text-align:center}
+  table.maptbl .mapchk input{width:16px;height:16px;accent-color:var(--navy);cursor:pointer}
+  table.maptbl tr.off{opacity:.5}
+  table.maptbl tr.off .mapcol{font-weight:400}
+  table.maptbl .mapcol{font-weight:600;color:var(--ink)}
+  table.maptbl .mapsamp{color:var(--mute);font-size:11.5px;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  table.maptbl select{width:100%;padding:5px 7px;border:1px solid var(--line);border-radius:7px;
+    font-size:12.5px;background:var(--card);color:var(--ink)}
+  .mapwarn{padding:2px 22px;color:var(--red);font-size:12.5px;min-height:18px}
+
+  /* édition inline (comme Excel) */
+  td.ied{cursor:text}
+  td.ied:hover{box-shadow:inset 0 0 0 1px #cfe0f7;background:#fafcff}
+  .cellinp{font:inherit;padding:3px 5px;border:1.5px solid var(--blue);border-radius:5px;
+    outline:none;background:#fff;color:var(--ink);box-shadow:0 0 0 3px rgba(11,120,189,.12)}
+  td.statcell{padding:5px 8px;min-width:200px;max-width:230px}
+  .stagecell{display:flex;flex-direction:column;gap:4px}
+  /* vue compacte : chip de l'étape atteinte + prochaine à cocher */
+  .stchip{display:inline-flex;flex-direction:column;align-self:flex-start;font-size:11.5px;font-weight:600;
+    color:#fff;background:var(--c,#555);padding:2px 10px;border-radius:7px;line-height:1.3}
+  .stchip small{font-weight:500;font-size:9.5px;opacity:.9}
+  .stchip.none{background:#e7ebf0;color:var(--mute);font-weight:500}
+  .stnext{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--c,var(--navy));
+    font-weight:600;cursor:pointer;border:1px dashed var(--c,var(--line));border-radius:7px;padding:3px 8px;align-self:flex-start}
+  .stnext input{width:15px;height:15px;accent-color:var(--c,var(--navy));cursor:pointer}
+  .stnext.dis{opacity:.5;cursor:default}
+  /* vue dépliée : liste scrollable */
+  .stscroll{max-height:112px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;
+    border:1px solid var(--line);border-radius:7px;padding:4px 6px}
+  .stage{display:flex;align-items:center;gap:6px;font-size:11.5px;cursor:pointer;padding:2px 3px;border-radius:5px}
+  .stage input{width:14px;height:14px;accent-color:var(--c,var(--navy));cursor:pointer;flex-shrink:0}
+  .stage.dis{cursor:default}
+  .stage.dis .stt{color:var(--faint)}
+  .stage.on{background:color-mix(in srgb,var(--c) 12%,#fff)}
+  .stage.on .stt{color:var(--c);font-weight:600}
+  .stage .stt{color:var(--mute)}
+  .stts{margin-left:auto;font-size:10px;color:#fff;background:var(--c,var(--navy));padding:0 6px;border-radius:999px;white-space:nowrap}
+  .stfoot{display:flex;gap:6px;align-items:center}
+  .stexp,.stlock,.sthist{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;
+    border:1px solid var(--line);border-radius:6px;padding:2px 7px;cursor:pointer;background:#fff;color:var(--mute)}
+  .stexp:hover,.sthist:hover{border-color:var(--navy);color:var(--navy)}
+  .stlock{color:var(--amber);border-color:#f0d9a8;background:#fff8ec}
+
+  /* historique (modal) */
+  .histbody{padding:4px 22px;max-height:60vh;overflow:auto}
+  .hrow{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:9px 0;border-bottom:1px solid #f0f2f5}
+  .hrow .hmeta{display:flex;gap:10px;align-items:baseline;font-size:12.5px}
+  .hrow .hmeta span{color:var(--mute);font-size:11px}
+  .hrow .hval{font-size:12px;color:var(--ink)}
+  .hrow .hold{color:var(--red);text-decoration:line-through;opacity:.8}
+  .hrow .hnew{color:var(--green-d);font-weight:600}
+  .hrow .hact{grid-row:span 2;align-self:center}
+  .hundo{font-size:11px;font-weight:600;border:1px solid var(--line);border-radius:6px;padding:3px 9px;cursor:pointer;background:#fff}
+  .hundo:hover{border-color:var(--navy);color:var(--navy)}
+  .hrev{font-size:10.5px;color:var(--faint);font-style:italic}
+  .hrow.revert{opacity:.7} .hrow.stage .hnew{font-weight:400}
+  .hempty{padding:30px;text-align:center;color:var(--mute)}
+
+  /* ℹ source + pièces */
+  .srcinfo{display:inline-flex;vertical-align:middle;margin-left:5px;border:0;background:none;
+    color:var(--blue);cursor:pointer;padding:0;opacity:.75}
+  .srcinfo:hover{opacity:1}
+  .srclist{display:flex;flex-direction:column;gap:5px}
+  .srcrow{display:flex;align-items:center;gap:11px;padding:9px 12px;width:100%;text-align:left;
+    border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer}
+  .srcrow:hover{border-color:var(--navy);background:#f7faff}
+  .srcrow .sri{width:20px;height:20px;color:#c0392b;flex-shrink:0}
+  .srcrow .sri svg{width:20px;height:20px}
+  .srcrow .srn{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+  .srcrow .srn b{font-size:12.5px;color:var(--ink)}
+  .srcrow .srn small{font-size:11px;color:var(--navy)}
+  .srcrow .srn em{font-size:10.5px;color:var(--faint);font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .srcrow .sre{width:16px;height:16px;color:var(--navy);flex-shrink:0;opacity:.6}
+  .srcrow:hover .sre{opacity:1}
+  #pieceModal .box{width:min(900px,96vw)}
+  /* panneau sauvegardes */
+  .sl-bks{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .bk-dl{display:block;text-align:center;font-size:11.5px;font-weight:600;color:var(--navy);
+    border:1px solid #cfe0f7;background:#f0f6ff;border-radius:7px;padding:6px;text-decoration:none}
+  .bk-dl:hover{background:#e3eefc}
+  .bk-ver{font-size:11px;color:var(--mute);background:none;border:0;cursor:pointer;text-decoration:underline;padding:0}
+  .bk-ver:hover{color:var(--navy)}
+  .bk-none{font-size:11px;color:var(--faint)}
+  /* liste des versions (modal) */
+  .verrow{display:flex;align-items:center;gap:11px;padding:9px 12px;border:1px solid var(--line);
+    border-radius:9px;margin-bottom:5px;text-decoration:none;color:var(--ink)}
+  .verrow:hover{border-color:var(--navy);background:#f7faff}
+  .verrow .veri{color:var(--navy);flex-shrink:0}
+  .verrow .vern{flex:1;font-size:12.5px}
+  .verrow .verk{font-size:10.5px;font-weight:600;color:var(--mute);background:#eef1f5;padding:1px 8px;border-radius:999px}
+
+  /* qualité des données : lignes incomplètes */
+  tr.qwarn td{background:#fffbea}                 /* plusieurs infos manquantes : jaune */
+  tr.qwarn:hover td{background:#fff6d6}
+  tr.qbad td{background:#fdecec}                   /* pas de nom : rouge pâle */
+  tr.qbad:hover td{background:#fbe0e0}
+  tr.qfree td{background:#fafbfc}                  /* lot libre (non vendu) : gris très clair */
+  tr.qfree:hover td{background:#f2f5f8}
+  td.cinmiss{background:#fdeeee !important;box-shadow:inset 2px 0 0 #f0a8a8}  /* CIN manquante : léger rouge */
+  td.ied.miss{background:#fff3d6;box-shadow:inset 2px 0 0 #e8b84b}  /* champ vide à compléter */
+
+  /* onglets par immeuble (comme les feuilles Excel) */
+  .immtabs{display:flex;flex-wrap:wrap;gap:4px;padding:10px 16px 0;border-bottom:1px solid var(--line)}
+  .immtab{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid var(--line);
+    border-bottom:none;border-radius:8px 8px 0 0;background:#f4f6f9;color:var(--mute);
+    font-size:12.5px;font-weight:600;cursor:pointer;position:relative;top:1px}
+  .immtab:hover{background:#eaeff6;color:var(--ink)}
+  .immtab.active{background:#fff;color:var(--navy);border-color:var(--line);border-bottom:1px solid #fff}
+  .immtab .immn{font-size:10.5px;font-weight:700;background:#dde6f2;color:var(--navy);
+    padding:0 7px;border-radius:999px;min-width:18px;text-align:center}
+  .immtab.active .immn{background:var(--navy);color:#fff}
+
+  /* en-têtes de groupe (Îlot / Immeuble) */
+  tr.grpi td{background:var(--navy);color:#fff;font-weight:700;font-size:12.5px;
+    letter-spacing:.04em;text-transform:uppercase;padding:7px 14px;position:sticky;left:0}
+  tr.grpm td{background:#eef3fb;color:var(--navy);font-weight:600;font-size:12px;
+    padding:5px 14px 5px 26px;border-bottom:1px solid #dce6f5}
+  tr.grpm .grpn{display:inline-block;margin-left:8px;background:#d6e2f5;color:var(--navy);
+    font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:999px}
+  .gbtn{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .gbtn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .gbtn.active svg{stroke:#fff}
 
   /* row selection */
   td.selcol,th.selcol{width:34px;text-align:center;padding-left:8px;padding-right:8px}
@@ -535,6 +796,11 @@
       <span class="t">Générer les lettres automatiquement</span>
     </label>
 
+    <label class="check">
+      <input type="checkbox" id="openInBrowser" checked>
+      <span class="t">Ouvrir le PDF dans le navigateur <small>(sinon téléchargement)</small></span>
+    </label>
+
     <button class="btn green block" id="scanBtn">Lancer le scan</button>
 
     <div class="srclock" id="srcLock" style="display:none"></div>
@@ -551,18 +817,50 @@
 
   <!-- MAIN -->
   <main class="main">
-    <div class="summary" id="summary" style="display:none"></div>
-
     <div class="panel" id="panel" style="display:none">
       <div class="controls">
         <div class="search">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
           <input type="text" id="q" placeholder="Rechercher un nom, une CIN, un immeuble, une adresse…">
         </div>
+        <select id="fIlot"><option value="">Tous les îlots</option></select>
+        <select id="fTag"><option value="">Tous les commerciaux</option></select>
+        <select id="fStatut"><option value="">Tous les statuts</option><option>Vendu</option><option value="Libre">Libre</option><option>Désistement</option><option>Test</option></select>
         <select id="fType"><option value="">Tous les types</option><option>Appartement</option><option>Commerce</option></select>
-        <select id="fStatut"><option value="">Tous les statuts</option><option>Vendu</option><option>À compléter</option><option>Désistement</option></select>
+        <!-- Filtre par complétude : cocher les infos requises -->
+        <div class="fldfilter" id="fldFilter">
+          <button class="fldbtn" id="fldBtn" type="button" title="Filtrer par informations présentes/absentes">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+            <span id="fldLbl">Infos requises</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="fldpop" id="fldPop">
+            <div class="fldmode">
+              <label class="fldsw"><input type="radio" name="fldmode" value="with" checked> Possèdent ces infos</label>
+              <label class="fldsw"><input type="radio" name="fldmode" value="without"> Les manquent (inverse)</label>
+            </div>
+            <div class="fldlist" id="fldList"></div>
+            <div class="fldfoot">
+              <button class="btn ghost" id="fldClear" type="button">Réinitialiser</button>
+              <span class="fldhint">Ex : CIN + Adresse = prêts pour la lettre.</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn ghost gbtn" id="groupBtn" title="Tout afficher dans une seule table, regroupé par immeuble">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M3 12h18M3 19h18"/></svg>
+          <span id="groupLbl">Voir tout en une table</span>
+        </button>
+        <button class="btn ghost gbtn" id="exportFilteredBtn" title="Exporter les lignes affichées (filtre actif) vers le classeur Suivi">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+          <span>Exporter Excel</span>
+        </button>
         <span class="count" id="count"></span>
       </div>
+      <!-- Cartes récap (reflètent le filtre actif) + qualité des données -->
+      <div class="summary" id="summary" style="display:none"></div>
+      <div class="quality" id="quality" style="display:none"></div>
+      <!-- Onglets par immeuble (comme les feuilles de l'Excel) -->
+      <div class="immtabs" id="immTabs"></div>
       <div class="selbar hidden" id="selBar">
         <span class="selinfo" id="selInfo">0 sélectionné</span>
         <button class="btn green" id="genBtn">Générer les lettres</button>
@@ -630,6 +928,7 @@
     <div class="vh">
       <span class="vt" id="vTitle">Lettre</span>
       <span class="va">
+        <a id="vPdf" href="#" target="_blank">Télécharger PDF</a>
         <a id="vDocx" href="#" target="_blank">Télécharger Word</a>
         <button class="x" onclick="closeViewer()" title="Fermer">×</button>
       </span>
@@ -688,8 +987,8 @@
       <select id="pkSort" class="pksort" title="Trier">
         <option value="name-asc">Nom (A→Z)</option>
         <option value="name-desc">Nom (Z→A)</option>
-        <option value="date-asc">Plus récent</option>
-        <option value="date-desc">Plus ancien</option>
+        <option value="date-desc">Plus récent</option>
+        <option value="date-asc">Plus ancien</option>
       </select>
     </div>
     <div class="pkmain">
@@ -699,11 +998,177 @@
     <div class="pksearch">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
       <input type="text" id="pkSearch" placeholder="Rechercher un dossier par son nom…">
+      <button class="btn green pkgo" id="pkSearchGo">Rechercher</button>
     </div>
     <div class="df">
       <button class="btn ghost" onclick="closePicker()">Annuler</button>
       <button class="btn green" id="pkChoose">Choisir ce dossier</button>
     </div>
+  </div>
+</div>
+
+<!-- DÉMARRAGE : importer un Excel OU partir d'une base vide -->
+<div class="overlay" id="startModal">
+  <div class="dialog" style="width:min(560px,100%)">
+    <div class="dh">
+      <h2>Par où commencer ?</h2>
+      <p>Choisissez une source de données. Vous pourrez toujours changer plus tard.</p>
+    </div>
+    <div class="startopts">
+      <button class="startopt" id="soImport">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M12 11v6"/><path d="m9 14 3-3 3 3"/></svg>
+        <div>
+          <strong>Importer un fichier Excel</strong>
+          <span>Partez de votre fichier existant. Vous verrez quelle colonne correspond à quelle donnée, et vous pourrez réenregistrer vos modifications dans ce même fichier.</span>
+        </div>
+      </button>
+      <button class="startopt" id="soEmpty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5"/><path d="M9.5 13.5h5"/></svg>
+        <div>
+          <strong>Partir d'une base vide</strong>
+          <span>Aucun Excel pour l'instant. Analysez des dossiers pour constituer la base, puis exportez un Excel propre.</span>
+        </div>
+      </button>
+    </div>
+    <div class="df">
+      <button class="btn ghost" id="startClose">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- SÉLECTEUR DE FICHIER EXCEL (côté serveur, pour pouvoir réécrire dedans) -->
+<div class="overlay" id="xlPicker">
+  <div class="dialog pickdlg">
+    <div class="dh"><h2>Choisir le fichier Excel à importer</h2></div>
+    <div class="pkbar">
+      <button class="pkup" id="xlUp" title="Dossier parent">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="m18 15-6-6-6 6"/></svg>
+      </button>
+      <div class="pkpath" id="xlPath"></div>
+      <select id="xlSort" class="pksort" title="Trier">
+        <option value="date-desc">Modifié récemment</option>
+        <option value="date-asc">Modifié anciennement</option>
+        <option value="name-asc">Nom (A→Z)</option>
+        <option value="name-desc">Nom (Z→A)</option>
+      </select>
+    </div>
+    <div class="pkmain">
+      <div class="pkplaces" id="xlPlaces"></div>
+      <div class="pklist" id="xlList"></div>
+    </div>
+    <div class="pksearch">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+      <input type="text" id="xlSearch" placeholder="Rechercher un fichier Excel (.xlsx) par son nom…">
+    </div>
+    <div class="df">
+      <button class="btn ghost" onclick="$('#xlPicker').classList.remove('open')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- CORRESPONDANCE DES COLONNES (quelle colonne = quelle donnée) -->
+<div class="overlay" id="mapModal">
+  <div class="dialog" style="width:min(900px,100%)">
+    <div class="dh">
+      <h2>Correspondance des colonnes</h2>
+      <p id="mapSub">Vérifiez que chaque colonne de votre Excel pointe vers la bonne donnée. Les choix automatiques sont déjà renseignés — corrigez-les si besoin.</p>
+    </div>
+    <div class="mapbody" id="mapBody"></div>
+    <div class="mapwarn" id="mapWarn"></div>
+    <div class="df">
+      <button class="btn ghost" onclick="$('#mapModal').classList.remove('open')">Annuler</button>
+      <button class="btn green" id="mapGo">Importer</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMATION D'UN CHANGEMENT D'ÉTAPE -->
+<div class="overlay" id="confirmModal">
+  <div class="dialog" style="width:min(400px,100%)">
+    <div class="dh"><h2>Confirmer</h2></div>
+    <p id="confirmMsg" style="padding:4px 22px;color:var(--ink);font-size:13.5px;line-height:1.5"></p>
+    <div class="df">
+      <button class="btn ghost" id="confirmNo">Annuler</button>
+      <button class="btn green" id="confirmYes">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- DÉVERROUILLAGE D'UNE LIGNE (code 1111) -->
+<div class="overlay" id="unlockModal">
+  <div class="dialog" style="width:min(380px,100%)">
+    <div class="dh"><h2>Ligne verrouillée</h2>
+      <p>Cette ligne est verrouillée. Entrez le code pour la modifier.</p></div>
+    <div style="padding:6px 22px">
+      <input type="password" id="unlockCode" inputmode="numeric" placeholder="Code"
+        style="width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:15px;text-align:center;letter-spacing:4px">
+      <div class="gateerr" id="unlockErr" style="text-align:center"></div>
+    </div>
+    <div class="df">
+      <button class="btn ghost" onclick="$('#unlockModal').classList.remove('open')">Annuler</button>
+      <button class="btn green" id="unlockGo">Déverrouiller</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORIQUE DES MODIFICATIONS -->
+<div class="overlay" id="histModal">
+  <div class="dialog" style="width:min(620px,100%)">
+    <div class="dh"><h2 id="histTitle">Historique</h2>
+      <p>Chaque modification est tracée. Cliquez « Rétablir » pour annuler un changement.</p></div>
+    <div class="histbody" id="histBody"></div>
+    <div class="df"><button class="btn ghost" onclick="$('#histModal').classList.remove('open')">Fermer</button></div>
+  </div>
+</div>
+
+<!-- CONFLITS classeur ↔ dossier -->
+<div class="overlay" id="conflictModal">
+  <div class="dialog" style="width:min(640px,100%)">
+    <div class="dh"><h2>Conflits classeur ↔ dossier</h2>
+      <p>Pour ces lots, le nom du classeur Suivi diffère du nom trouvé dans le dossier physique. À vérifier manuellement (l'app n'a rien écrasé).</p></div>
+    <div class="histbody" id="conflictBody"></div>
+    <div class="df"><button class="btn ghost" onclick="$('#conflictModal').classList.remove('open')">Fermer</button></div>
+  </div>
+</div>
+
+<!-- PARCOURS DE LIVRAISON (7 étapes) -->
+<div class="overlay detail" id="dvModal">
+  <div class="drawer" style="width:min(560px,100%)">
+    <div class="dhead">
+      <div><div class="dname" id="dvName">Parcours de livraison</div>
+        <div class="dsub" id="dvSub"></div></div>
+      <button class="x" onclick="$('#dvModal').classList.remove('open')" title="Fermer">×</button>
+    </div>
+    <div class="dbody" id="dvBody"></div>
+  </div>
+</div>
+
+<!-- VERSIONS PRÉCÉDENTES DE L'EXCEL -->
+<div class="overlay" id="verModal">
+  <div class="dialog" style="width:min(540px,100%)">
+    <div class="dh"><h2>Versions précédentes</h2>
+      <p>Chaque enregistrement crée une sauvegarde horodatée. Cliquez pour télécharger.</p></div>
+    <div class="histbody" id="verBody"></div>
+    <div class="df"><button class="btn ghost" onclick="$('#verModal').classList.remove('open')">Fermer</button></div>
+  </div>
+</div>
+
+<!-- SOURCE / PIÈCES D'UN CLIENT -->
+<div class="overlay" id="srcModal">
+  <div class="dialog" style="width:min(560px,100%)">
+    <div class="dh"><h2 id="srcTitle">Source</h2>
+      <p>D'où vient la donnée : <b id="srcProv"></b></p></div>
+    <div class="histbody" id="srcFiles"></div>
+    <div class="df"><button class="btn ghost" onclick="$('#srcModal').classList.remove('open')">Fermer</button></div>
+  </div>
+</div>
+
+<!-- VISIONNEUSE D'UNE PIÈCE -->
+<div class="overlay viewer" id="pieceModal">
+  <div class="box">
+    <div class="vh"><span class="vt" id="pieceTitle">Pièce</span>
+      <span class="va"><button class="x" onclick="$('#pieceModal').classList.remove('open');$('#pieceBody').innerHTML='';" title="Fermer">×</button></span></div>
+    <div id="pieceBody" style="background:#fff;overflow:auto"></div>
   </div>
 </div>
 
@@ -716,6 +1181,10 @@
     <input type="password" id="gateCode" inputmode="numeric" placeholder="Code" autocomplete="off">
     <input type="password" id="gateCode2" placeholder="Confirmer le code" autocomplete="off" style="display:none">
     <div class="gateerr" id="gateErr"></div>
+    <label class="gateremember" id="gateRememberRow">
+      <input type="checkbox" id="gateRemember" checked>
+      <span>Rester connecté sur cet ordinateur</span>
+    </label>
     <button class="btn green block" id="gateGo">Entrer</button>
     <div class="gatepub">Éditeur : Younes Lamnabhi · +212 600622677</div>
   </div>
@@ -747,6 +1216,15 @@
       <div class="setnote">Champs : {nom} {cin} {ilot} {imm} {no} {ref} {type}. Laisser vide pour le format par défaut.</div>
       <div class="setsec">Sécurité</div>
       <button class="btn ghost" id="setChangeCode">Modifier le code d'accès…</button>
+      <button class="btn ghost" id="setLogout" style="margin-top:8px">Se déconnecter (redemander le code)</button>
+      <div class="setnote">Déconnectez-vous si cet ordinateur est partagé.</div>
+      <div class="setsec">Maintenance</div>
+      <button class="btn ghost" id="setExportSuivi">Exporter vers le classeur Suivi (gabarit)…</button>
+      <button class="btn ghost" id="setRederivePays" style="margin-top:8px">Recalculer les pays (depuis la ville)…</button>
+      <button class="btn ghost" id="setFlushHistory" style="margin-top:8px">Vider l'historique des modifications…</button>
+      <button class="btn ghost" id="setFlushStages" style="margin-top:8px">Réinitialiser tous les statuts (étapes)…</button>
+      <button class="btn ghost" id="setFlushLetters" style="margin-top:8px">Supprimer les lettres générées…</button>
+      <div class="setnote">Ces actions sont définitives. Les données clients ne sont pas supprimées.</div>
       <div class="setsec">À propos</div>
       <div class="setabout">Data Collector — Romana Immobilier<br>
         Éditeur : <b>Younes Lamnabhi</b> · +212 600622677</div>
@@ -809,19 +1287,28 @@ const esc=s=>(s==null?"":String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;
 // Chemin complet affichable : si rel est déjà absolu (commence par / ou C:\), on le garde.
 const absPath=rel=>(/^(\/|[A-Za-z]:\\)/.test(rel)?rel:(ROOT||'').replace(/\/$/,'')+'/'+rel);
 let CLIENTS=[], ROOT="", sortK="date_courrier", sortDir=-1, poll=null, recheckMode="overwrite", autoGen=false;
-let pageSize=(function(){const s=localStorage.getItem('bv_pagesize');return s==='all'?'all':(parseInt(s)||100);})();
+let pageSize=(function(){const s=localStorage.getItem('bv_pagesize');return s==='all'?'all':(parseInt(s)||500);})();
 let curPage=1, showDupsOnly=false;
+let mergeDups=false;   // fusion visuelle des doublons App+Commerce (OFF = comptage honnête)
+let groupMode=localStorage.getItem('bv_group')==='1';
+let immTab=localStorage.getItem('bv_immtab')||'';   // immeuble actif (onglet)
 
 const COLS=[
   {k:"_sel",t:"",nosort:true,sel:true},
-  {k:"date_courrier",t:"Date"},
+  // Clés de rapprochement d'abord (Îlot · Immeuble · Étage · N°)
   {k:"ilot",t:"Îlot",cls:"num"},{k:"immeuble",t:"Imm."},
-  {k:"numero",t:"N°",cls:"num"},{k:"type_bien",t:"Type"},{k:"etage",t:"Étage"},
-  {k:"nom_prenom",t:"Nom / Prénom"},{k:"cin_str",t:"C.I.N"},{k:"quote_part",t:"Q.P."},
-  {k:"tel",t:"Téléphone"},
+  {k:"etage",t:"Étage"},{k:"numero",t:"N°",cls:"num"},{k:"type_bien",t:"Type"},
+  // Puis identité et adresse
+  {k:"nom_prenom",t:"Nom / Prénom"},{k:"tag",t:"Commercial(e)"},{k:"adresse1",t:"Adresse"},
+  {k:"ville",t:"Ville"},{k:"pays",t:"Pays"},{k:"cin_str",t:"C.I.N"},
+  // Puis le reste
+  {k:"date_vente",t:"Date de vente"},
+  {k:"quote_part",t:"Q.P."},{k:"tel",t:"Téléphone"},
   {k:"prix_total",t:"Prix (DH)",cls:"money"},{k:"avance",t:"Avance",cls:"money"},
   {k:"reste",t:"Reste",cls:"money"},
-  {k:"statut",t:"Statut"},{k:"_docs",t:"Dossier",nosort:true},{k:"_letter",t:"Lettre",nosort:true}
+  {k:"paiement_montant",t:"Paiement",cls:"money"},{k:"banque",t:"Banque"},
+  {k:"_delivery",t:"Livraison",nosort:true},
+  {k:"statut",t:"Suivi lettres",nosort:true},{k:"_docs",t:"Dossier",nosort:true},{k:"_letter",t:"Lettre",nosort:true}
 ];
 let SELECTED=new Set();
 
@@ -884,36 +1371,155 @@ async function loadClients(){
   CLIENTS=d.clients||[]; ROOT=d.root;
   if(CLIENTS.length){
     $('#emptyState').style.display='none';
-    $('#summary').style.display=''; $('#panel').style.display='';
-    renderSummary(); buildHead(); render();
+    $('#summary').style.display=''; $('#quality').style.display=''; $('#panel').style.display='';
+    populateFilters();
+    renderSummary(); buildHead(); renderImmTabs(); render();
   }
 }
 
-function renderSummary(){
-  const t=CLIENTS.length, v=CLIENTS.filter(c=>c.statut==='Vendu').length,
-    todo=CLIENTS.filter(c=>c.statut==='À compléter').length,
-    des=CLIENTS.filter(c=>c.statut==='Désistement').length,
-    app=CLIENTS.filter(c=>c.type_bien==='Appartement').length,
-    com=CLIENTS.filter(c=>c.type_bien==='Commerce').length;
-  // Doublons : clés (îlot+imm+n°+type) présentes plus d'une fois.
-  const cnt={}; CLIENTS.forEach(c=>{const k=dupKey(c);cnt[k]=(cnt[k]||0)+1;});
-  const dupBiens=Object.values(cnt).filter(n=>n>1).reduce((a,n)=>a+n,0);
+// Remplit les listes Îlot / Commercial(e) depuis les données, en gardant la
+// sélection mémorisée (on reprend là où on s'était arrêté).
+function populateFilters(){
+  const ilots=[...new Set(CLIENTS.map(c=>String(c.ilot||'')).filter(Boolean))]
+    .sort((a,b)=>(+a||0)-(+b||0));
+  const tags=[...new Set(CLIENTS.map(c=>c.tag||'').filter(Boolean))].sort();
+  const fi=$('#fIlot'), fg=$('#fTag');
+  if(fi){
+    // Défaut : TOUS les îlots (on voit l'ensemble du projet). L'utilisateur
+    // À l'ouverture : TOUJOURS « Tous les îlots » (on voit tout le projet).
+    // Les filtres sont une action volontaire, jamais un état collant à l'ouverture.
+    fi.innerHTML='<option value="">Tous les îlots</option>'+
+      ilots.map(i=>`<option value="${esc(i)}">Îlot ${esc(i)}</option>`).join('');
+    fi.value = '';
+  }
+  if(fg){
+    fg.innerHTML='<option value="">Tous les commerciaux</option>'+
+      tags.map(t=>`<option value="${esc(t)}">${esc(t)}</option>`).join('');
+    fg.value = '';
+  }
+  const fst=$('#fStatut');
+  if(fst) fst.value = '';   // statut : tous à l'ouverture
+}
+
+// Les cartes = INVENTAIRE. Un « bien » = un lot unique (îlot+imm+n°+type).
+// Les désistements sont d'ANCIENS acquéreurs du même lot -> ils ne comptent
+// PAS comme des biens en plus (comptés à part, « historique »).
+function renderSummary(rows){
+  const set = rows || CLIENTS;
+  // lots uniques (hors désistements)
+  const lotStatus={};         // clé lot -> statut (vendu/libre…)
+  set.forEach(c=>{
+    if(clientStatus(c)==='Désistement') return;
+    lotStatus[dupKey(c)] = clientStatus(c);
+  });
+  const lots=Object.values(lotStatus);
+  const totalLots=lots.length;
+  const sold=lots.filter(s=>s==='Vendu').length;
+  const libre=lots.filter(s=>s==='Libre').length;
+  const test=set.filter(c=>clientStatus(c)==='Test').length;
+  const des=set.filter(c=>clientStatus(c)==='Désistement').length;
+  // appart/commerce sur les lots uniques
+  const typeByLot={}; set.forEach(c=>{ if(clientStatus(c)!=='Désistement') typeByLot[dupKey(c)]=c.type_bien; });
+  const app=Object.values(typeByLot).filter(t=>t==='Appartement').length;
+  const com=Object.values(typeByLot).filter(t=>t==='Commerce').length;
+  const filtered = set.length!==CLIENTS.length;
+  // Transactions = toutes les ventes jamais faites (actives + désistements).
+  const transactions = sold + des;
   const cards=[
-    ['sel',t,'Biens au total'],
-    ['ok',v,'Vendus'],
+    ['deal',transactions, filtered?'Ventes (filtrées)':'Ventes (total)'],
+    ['sel',totalLots,'Biens (unités)'],
+    ['ok',sold,'Vendus'],
+    ['free',libre,'Disponibles'],
     ...(des?[['des',des,'Désistements']]:[]),
-    ...(todo?[['wait',todo,'À compléter']]:[]),
-    ...(dupBiens?[['dup',dupBiens,'Doublons']]:[]),
+    ...(test?[['test',test,'Tests']]:[]),
     ['sep',app,'dont Appartements'],
     ['',com,'dont Commerces'],
   ];
   $('#summary').innerHTML=cards.map(([c,n,l])=>
-    `<div class="s ${c}${c==='dup'?' clickdup':''}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
-  const dc=$('#summary .clickdup'); if(dc){ dc.title='Cliquer pour n\'afficher que les doublons';
-    dc.onclick=()=>{ showDupsOnly=!showDupsOnly; dc.classList.toggle('active',showDupsOnly); curPage=1; render(); }; }
+    `<div class="s ${c}"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+  renderQuality(set);
 }
 
+// Panneau QUALITÉ DES DONNÉES : complétude par champ (sur les VENDUS AFFICHÉS).
+function renderQuality(rows){
+  const box=$('#quality'); if(!box) return;
+  const sellers=(rows||CLIENTS).filter(isSold);
+  const N=sellers.length||1;
+  const has=(c,k)=> k==='cin' ? !!(c.cin&&c.cin.length) : !!((c[k]||'').toString().trim());
+  const fields=[
+    ['cin','C.I.N'],['adresse1','Adresse'],['ville','Ville'],['tel','Téléphone'],
+    ['superficie','Superficie'],['prix_total','Prix'],['date_vente','Date vente'],
+    ['etage','Étage'],['tag','Commercial'],
+  ];
+  // incomplets = vendus à qui il manque ≥1 champ clé (CIN/adresse/tel)
+  const incomplete=sellers.filter(c=>!has(c,'cin')||!has(c,'adresse1')||!has(c,'tel')).length;
+  // suspects "fake"/placeholder : noms type WAFAA ZINE, ou CIN dans le nom, etc.
+  const suspect=sellers.filter(c=>/wafaa\s+zine|test|xxx|placeholder/i.test(c.nom_prenom||'')
+     || /^\s*[A-Z]{1,3}\d{4,}\s*$/.test((c.nom_prenom||'').trim())).length;
+  const cinVer=sellers.filter(c=>c.cin_verified&&c.cin_verified.length).length;
+  const bars=fields.map(([k,l])=>{
+    const n=sellers.filter(c=>has(c,k)).length, p=Math.round(100*n/N);
+    const col=p>=90?'#1a7a3c':p>=70?'#c9780b':'#b02a2a';
+    return `<div class="qrow"><span class="qlbl">${l}</span>
+      <span class="qbar"><span class="qfill" style="width:${p}%;background:${col}"></span></span>
+      <span class="qpct">${p}% <small>(${n}/${N})</small></span></div>`;
+  }).join('');
+  box.innerHTML=`
+    <div class="qhead">
+      <b>Qualité des données</b> — ${N} vendus
+      <span class="qbadges">
+        <span class="qb ok">${cinVer} CIN vérifiées</span>
+        <span class="qb warn">${incomplete} incomplets</span>
+        ${suspect?`<span class="qb bad">${suspect} à vérifier</span>`:''}
+        <span class="qb bad" id="qConflicts" style="display:none;cursor:pointer"></span>
+      </span>
+    </div>
+    <div class="qbars">${bars}</div>`;
+  // Conflits classeur ↔ dossier (chargés à part, cliquables).
+  loadConflicts();
+}
+
+let CONFLICTS=[];
+async function loadConflicts(){
+  try{ const d=await (await fetch('/api/conflicts')).json(); CONFLICTS=d.conflicts||[]; }
+  catch(e){ CONFLICTS=[]; }
+  const b=$('#qConflicts'); if(!b)return;
+  if(CONFLICTS.length){
+    b.style.display=''; b.textContent=`${CONFLICTS.length} conflits classeur/dossier`;
+    b.title='Le classeur et le dossier physique ne sont pas d\'accord sur le lot. Cliquer pour voir.';
+    b.onclick=openConflicts;
+  } else b.style.display='none';
+}
+function openConflicts(){
+  const body=$('#conflictBody');
+  body.innerHTML=CONFLICTS.map(c=>`<div class="cfrow">
+      <div class="cfkey">Îlot ${esc(c.ilot)} · Imm ${esc(c.immeuble||'—')} · ${esc(c.type_bien)} N° ${esc(c.numero)}</div>
+      <div class="cfpair"><span class="cftag xl">Classeur</span> ${esc(c.excel_nom)}</div>
+      <div class="cfpair"><span class="cftag doc">Dossier</span> ${esc(c.dossier_nom)}${c.dossier_cin?` · CIN ${esc(c.dossier_cin)}`:''}</div>
+    </div>`).join('')||'<div class="tlempty">Aucun conflit.</div>';
+  $('#conflictModal').classList.add('open');
+}
+
+// Colonnes totalement vides (sur TOUT le jeu) -> masquées automatiquement.
+let EMPTY_COLS=new Set();
+function computeEmptyCols(){
+  EMPTY_COLS=new Set();
+  const dataCols=COLS.filter(c=>c.k && !c.sel && !c.nosort);
+  dataCols.forEach(col=>{
+    const any=CLIENTS.some(c=>{
+      let v=c[col.k];
+      if(Array.isArray(v)) v=v.join('');
+      v=(v==null?'':String(v)).trim();
+      if(col.k==='quote_part') return false; // QP toujours 100 -> on peut masquer
+      return v!=='' && v!=='—';
+    });
+    if(!any) EMPTY_COLS.add(col.k);
+  });
+}
+function colHidden(k){ return EMPTY_COLS.has(k)?' style="display:none"':''; }
+
 function buildHead(){
+  computeEmptyCols();
   $('#head').innerHTML=COLS.map(c=>{
     if(c.sel) return `<th class="selcol"><input type="checkbox" class="selchk" id="selAll"></th>`;
     const sorted=sortK===c.k;
@@ -923,7 +1529,8 @@ function buildHead(){
       :'<svg width="8" height="8" viewBox="0 0 10 10" opacity=".4"><path d="M5 1 2 4h6z" fill="currentColor"/><path d="M5 9 2 6h6z" fill="currentColor"/></svg>';
     const ar=c.nosort?'':`<span class="ar">${glyph}</span>`;
     const sticky=c.k==='_docs'?' stickydocs':c.k==='_letter'?' stickylet':'';
-    return `<th data-k="${c.k}" class="${sorted?'sorted':''}${sticky}" ${c.nosort?'style="cursor:default"':''}>${c.t}${ar}</th>`;
+    const hid=colHidden(c.k);
+    return `<th data-k="${c.k}" class="${sorted?'sorted':''}${sticky}" ${hid||(c.nosort?'style="cursor:default"':'')}>${c.t}${ar}</th>`;
   }).join('');
   $('#head').querySelectorAll('th[data-k]').forEach(th=>{
     const k=th.dataset.k; if(COLS.find(c=>c.k===k).nosort)return;
@@ -951,6 +1558,22 @@ function letterCell(c){
     <span class="lbico">${ready?EYE:GEN}</span><span>${label}</span></button>`;
 }
 
+// Cellule « Livraison » : étape courante (chip coloré) + jauge 1-7 +
+// bouton d'action contextuel qui fait avancer le dossier.
+function deliveryCell(c){
+  const d=deliveryInfo(c);
+  const dots=DELIVERY_STEPS.map(s=>
+    `<span class="dvdot${s.n<=d.step?' on':''}" style="--c:${d.color}" title="${esc(s.t)}"></span>`).join('');
+  const chip=`<span class="dvchip" style="--c:${d.color}">${esc(d.sg)}</span>`;
+  const next=d.action
+    ? `<button class="dvact" data-id="${c.id}" title="Action : ${esc(d.action)}">${esc(d.action)}</button>`
+    : (/livr/i.test(d.sg)?'<span class="dvdone"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:-1px"><path d="M20 6 9 17l-5-5"/></svg> Livré</span>':'');
+  const open=`<button class="dvmore" data-id="${c.id}" title="Détails du parcours de livraison">détails</button>`;
+  return `<div class="dvcell"><div class="dvtop">${chip}</div>
+    <div class="dvdots">${dots}</div>
+    <div class="dvfoot">${next}${open}</div></div>`;
+}
+
 function docsCell(c){
   const n=(c.documents||[]).length;
   const enriched=c.naissance||c.pere||c.recu_num;
@@ -967,18 +1590,27 @@ function owners(c){
 }
 function statusBadges(c){
   let b='';
-  if(c.approved) b+='<span class="rbadge ok" title="Approuvé le '+esc(c.approved_at||'')+'">✓ approuvé</span>';
+  if(c.approved) b+='<span class="rbadge ok" title="Approuvé le '+esc(c.approved_at||'')+'"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:-1px"><path d="M20 6 9 17l-5-5"/></svg> approuvé</span>';
   if(c.edited) b+='<span class="rbadge ed" title="Modifié le '+esc(c.edited_at||'')+'">modifié</span>';
   return b?`<div class="rbadges">${b}</div>`:'';
 }
+function srcInfoBtn(c){
+  // ℹ : source de la donnée (même si « Excel ») + accès aux pièces du dossier.
+  const sd=c.source_data||'Importé depuis l\'Excel';
+  const hasFolder=!!(c.dossier_source||'').trim();
+  return `<button class="srcinfo" data-id="${c.id}" title="${esc(sd)}${hasFolder?' — cliquer pour voir les pièces':''}">
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.5h.01"/></svg></button>`;
+}
 function nameCell(c){
   const bad=statusBadges(c);
-  if(!c.nom_prenom) return '<span class="todo-name">à compléter</span>'+bad
+  const info=srcInfoBtn(c);
+  // Lot sans client : non vendu (libre). On le distingue d'une donnée manquante.
+  if(!c.nom_prenom) return '<span class="free-name">— lot libre —</span>'+info+bad
     +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
   const os=owners(c);
-  if(os.length<=1) return `<b>${esc(c.nom_prenom)}</b>`+bad
+  if(os.length<=1) return `<b>${esc(c.nom_prenom)}</b>`+info+bad
     +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
-  return os.map(o=>`<div class="owln"><b>${esc(o.nom)}</b></div>`).join('')+bad
+  return os.map(o=>`<div class="owln"><b>${esc(o.nom)}</b></div>`).join('')+info+bad
     +(c.observation?`<div class="note">${esc(c.observation)}</div>`:'');
 }
 const CHECK='<svg class="cinok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" title="Vérifiée sur la carte d\'identité"><path d="M20 6 9 17l-5-5"/></svg>';
@@ -987,10 +1619,18 @@ function cinOne(code,c){
   const verified=(c.cin_verified||[]).includes(code);
   return esc(code)+(verified?CHECK:'');
 }
+// Libellé court du type de pièce (sauf CIN marocaine, laissée nue).
+function pieceBadge(c){
+  const t=(c.piece_type||'').toLowerCase();
+  if(t==='passeport') return '<span class="piecetag">Passeport</span> ';
+  if(t==='carte_sejour') return '<span class="piecetag">Séjour</span> ';
+  return '';
+}
 function cinCell(c){
   const os=owners(c);
-  if(os.length<=1) return (c.cin&&c.cin.length)?cinOne(c.cin[0],c):'—';
-  return os.map(o=>`<div class="owln">${cinOne(o.cin,c)}</div>`).join('');
+  const bdg=pieceBadge(c);
+  if(os.length<=1) return (c.cin&&c.cin.length)?bdg+cinOne(c.cin[0],c):'—';
+  return os.map(o=>`<div class="owln">${bdg}${cinOne(o.cin,c)}</div>`).join('');
 }
 function qpCell(c){
   const os=owners(c);
@@ -1003,20 +1643,117 @@ function dupKey(c){ return [c.ilot,c.immeuble,c.numero,(c.type_bien||'').toLower
 function parseDate(s){ const m=/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/.exec(s||''); if(!m)return 0;
   let y=+m[3]; if(y<100)y+=2000; return y*10000+(+m[2])*100+(+m[1]); }
 
+// Un lot est « vendu » s'il porte un nom de client (ou statut_lot = Vendu).
+// Sans nom ni info = lot non vendu (libre / à renseigner).
+// Statut canonique d'un client : Vendu / Désistement / Test / Libre.
+function clientStatus(c){
+  if(c.is_desistement || /désist|desist/i.test(c.statut||c.statut_lot||''))return 'Désistement';
+  if(/^test$/i.test(c.statut||'') || /\b(test|wafaa zine|placeholder|essai)\b/i.test(c.nom_prenom||''))return 'Test';
+  const sl=(c.suivi&&c.suivi.statut_lot)||c.statut_lot||'';
+  if(/libre/i.test(sl))return 'Libre';
+  if((c.nom_prenom||'').trim())return 'Vendu';
+  return 'Libre';
+}
+function isSold(c){ return clientStatus(c)==='Vendu'; }
+// Champs filtrables par complétude. has(c) = l'info est présente.
+const FLD_DEFS=[
+  {k:'cin',t:'C.I.N',has:c=>!!(c.cin&&c.cin.length)},
+  {k:'adresse1',t:'Adresse',has:c=>!!((c.adresse1||'').trim())},
+  {k:'ville',t:'Ville',has:c=>!!((c.ville||'').trim())},
+  {k:'tel',t:'Téléphone',has:c=>!!((c.tel||'').trim())},
+  {k:'superficie',t:'Superficie',has:c=>!!((c.superficie||'').toString().trim())},
+  {k:'prix_total',t:'Prix',has:c=>!!((c.prix_total||'').toString().trim())},
+  {k:'date_vente',t:'Date de vente',has:c=>!!((c.date_vente||'').trim())},
+  {k:'etage',t:'Étage',has:c=>!!((c.etage||'').trim())},
+  {k:'paiement_montant',t:'Paiement',has:c=>!!((c.paiement_montant||'').toString().trim())},
+];
+let fldChecked=new Set(), fldMode='with';   // 'with' = possèdent, 'without' = manquent
+function passesFieldFilter(c){
+  if(!fldChecked.size)return true;
+  const defs=FLD_DEFS.filter(d=>fldChecked.has(d.k));
+  if(fldMode==='with') return defs.every(d=>d.has(c));     // a TOUTES les infos cochées
+  return defs.some(d=>!d.has(c));                           // MANQUE au moins une
+}
 function filteredSorted(){
   const q=$('#q').value.trim().toLowerCase(), ft=$('#fType').value, fs=$('#fStatut').value;
+  const fi=($('#fIlot')||{}).value||'', fg=($('#fTag')||{}).value||'';
   let rows=CLIENTS.filter(c=>{
+    if(fi && String(c.ilot||'')!==fi)return false;
+    if(fg && (c.tag||'')!==fg)return false;
     if(ft&&c.type_bien!==ft)return false;
-    if(fs&&c.statut!==fs)return false;
+    if(fs&&clientStatus(c)!==fs)return false;
+    if(!passesFieldFilter(c))return false;
     if(!q)return true;
-    return [c.nom_prenom,c.cin_str,c.immeuble,c.adresse1,c.tel,c.numero,c.ilot]
+    return [c.nom_prenom,c.cin_str,c.immeuble,c.adresse1,c.tel,c.numero,c.ilot,c.tag]
       .join(' ').toLowerCase().includes(q);
   });
+  // Vue par onglets (hors mode « voir tout ») : ne garder que l'immeuble actif.
+  if(!groupMode && immTab){
+    rows=rows.filter(c=>immBucket(c)===immTab);
+  }
   // Détecter les doublons (même îlot+imm+n°+type) sur TOUT le jeu.
-  const counts={}; CLIENTS.forEach(c=>{counts[dupKey(c)]=(counts[dupKey(c)]||0)+1;});
-  rows.forEach(c=>{ c._dup=counts[dupKey(c)]>1; });
+  const counts={}, grp={};
+  CLIENTS.forEach(c=>{ const k=dupKey(c); counts[k]=(counts[k]||0)+1; (grp[k]=grp[k]||[]).push(c); });
+  // Un lot « revendu » (ancien désistement + une vente active) n'est PAS une
+  // anomalie : on le distingue du vrai doublon (plusieurs ventes actives).
+  const isDesist=c=>/désist|desist/i.test(c.statut||'');
+  rows.forEach(c=>{
+    const k=dupKey(c); c._dup=counts[k]>1;
+    if(c._dup){
+      const members=grp[k]||[];
+      const actives=members.filter(m=>!isDesist(m));
+      c._resale=members.some(isDesist) && actives.length<=1;
+    }
+  });
   if(showDupsOnly) rows=rows.filter(c=>c._dup);
 
+  // NB : AUCUNE fusion automatique ici. Les doublons Appartement+Commerce du
+  // même propriétaire restent des lignes distinctes (comptage honnête) ; ils
+  // sont seulement signalés visuellement par le badge « doublon » / « revendu ».
+  // Le regroupement optionnel se fait via le bouton « Fusionner doublons ».
+  if(mergeDups){
+    const ownerKey=c=>{
+      const cin=(c.cin_str||'').trim().toUpperCase();
+      if(cin) return 'CIN:'+cin;
+      const nm=(c.nom_prenom||'').trim().toUpperCase().replace(/\s+/g,' ');
+      return nm?'NOM:'+nm:'';
+    };
+    const score=c=>{
+      let s=0;
+      if(!isDesist(c)) s+=100;
+      if(!/whatsapp|image|\.jpe?g|\.png|screenshot/i.test(c.nom_prenom||'')) s+=50;
+      if((c.cin_str||'').trim()) s+=10;
+      if((c.ville||'').trim()) s+=5;
+      if((c.adresse1||'').trim()) s+=3;
+      if((c.tel||'').trim()) s+=2;
+      return s;
+    };
+    const best={}, order=[];
+    rows.forEach(c=>{
+      const ok=ownerKey(c);
+      const k=ok?[c.ilot,c.immeuble,c.numero,ok].join('|'):('__keep__'+order.length);
+      if(!(k in best)){ best[k]=c; order.push(k); }
+      else if(score(c)>score(best[k])) best[k]=c;
+    });
+    rows=order.map(k=>best[k]);
+  }
+
+  // Dans un onglet immeuble, trier par N°.
+  if(!groupMode && immTab){
+    const num=v=>+String(v??'').replace(/\D/g,'')||0;
+    rows.sort((a,b)=>num(a.numero)-num(b.numero));
+    return rows;
+  }
+
+  // En mode groupé, l'ordre est imposé : Îlot › Immeuble › N°.
+  if(groupMode){
+    const num=v=>+String(v??'').replace(/\D/g,'')||0;
+    rows.sort((a,b)=>
+      num(a.ilot)-num(b.ilot)
+      || String(a.immeuble||'~').localeCompare(String(b.immeuble||'~'))
+      || num(a.numero)-num(b.numero));
+    return rows;
+  }
   const val=(c)=>{
     let x=c[sortK];
     if(sortK==='date_courrier')return parseDate(x);
@@ -1043,12 +1780,526 @@ function filteredSorted(){
   return out;
 }
 
+/* ---- onglets par immeuble (comme les feuilles Excel) ---- */
+function immBucket(c){
+  if(/commerce|magasin/i.test(c.type_bien||'')) return 'Commerces';
+  return String(c.immeuble||'?').toUpperCase();
+}
+function immTabList(){
+  const set=new Set(CLIENTS.map(immBucket));
+  const letters=[...set].filter(x=>x!=='Commerces'&&x!=='?').sort();
+  const out=letters.map(l=>({key:l,label:'Immeuble '+l}));
+  if(set.has('Commerces')) out.push({key:'Commerces',label:'Commerces'});
+  if(set.has('?')) out.push({key:'?',label:'(sans immeuble)'});
+  return out;
+}
+function renderImmTabs(){
+  const box=$('#immTabs'); if(!box)return;
+  if(groupMode){ box.style.display='none'; return; }
+  box.style.display='';
+  const tabs=immTabList();
+  if(tabs.length && !tabs.some(t=>t.key===immTab)) immTab=tabs[0].key;
+  const counts={}; CLIENTS.forEach(c=>{const b=immBucket(c);counts[b]=(counts[b]||0)+1;});
+  box.innerHTML=tabs.map(t=>
+    `<button class="immtab${t.key===immTab?' active':''}" data-k="${esc(t.key)}">
+      ${esc(t.label)}<span class="immn">${counts[t.key]||0}</span></button>`).join('');
+  box.querySelectorAll('.immtab').forEach(b=>b.onclick=()=>{
+    immTab=b.dataset.k; localStorage.setItem('bv_immtab',immTab); curPage=1; renderImmTabs(); render();
+  });
+}
+
+/* ---- Suivi des lettres : étapes séquentielles, horodatées, verrouillables ---- */
+// Processus légal : notification puis escalade. Chaque étape est horodatée.
+/* ===================== PARCOURS DE LIVRAISON (7 étapes) =====================
+   Suit le schéma fonctionnel. Chaque « statut_global » (renseigné dans l'Excel
+   de suivi) correspond à une étape et propose UNE action suivante contextuelle
+   qui fait avancer le dossier. */
+const DELIVERY_STEPS=[
+  {n:1, t:'Contact initial'},
+  {n:2, t:'Visite bureau'},
+  {n:3, t:'Visite technique'},
+  {n:4, t:'Levée des réserves'},
+  {n:5, t:'PV de réception'},
+  {n:6, t:'Transmission notaire'},
+  {n:7, t:'Remise des clés'},
+];
+/* --- Machine à états scénarisée (suit les BRANCHES du schéma) ---
+   Chaque jalon : done(s) = déjà franchi ? ; date(s) = sa date ; les ACTIONS
+   suivantes dépendent du scénario (joignable ? satisfait ? crédit/comptant ?).
+   On dérive l'état réel depuis le bloc `suivi` + statut_global. */
+const YES=v=>/^(oui|yes|effectu|fait|sign|re[çc]u|accord|planifi|o)/i.test((v||'').trim());
+const NO=v=>/^(non|no|injoign|pas|refus|n)/i.test((v||'').trim());
+function dvDate(s,keys){ for(const k of keys){ if(s[k])return s[k]; } return ''; }
+
+// Les JALONS (passé/present). done() lit l'état réel ; color pour la frise.
+const MILESTONES=[
+  {k:'vente', t:'Vente enregistrée', color:'#8a94a6',
+   done:(s,c)=>!!(c.nom_prenom||'').trim() && !/libre|à renseigner/i.test(s.statut_global||''),
+   date:s=>s.date_vente||''},
+  {k:'contact', t:'Contact client', color:'#b02a2a',
+   done:s=>YES(s.s1_appel)||!!s.s1_appel_date||!!s.s1_joignable,
+   date:s=>dvDate(s,['s1_appel_date','s1_relance_date']), info:s=>s.s1_joignable||''},
+  {k:'bureau', t:'Visite au bureau', color:'#c9780b',
+   done:s=>YES(s.s2_visite)||!!s.s2_date, date:s=>s.s2_date||'', info:s=>s.s2_remarque||''},
+  {k:'tech', t:'Visite technique', color:'#c9780b',
+   done:s=>!!s.s3_date_reelle||YES(s.s3_respecte), date:s=>dvDate(s,['s3_date_reelle','s3_date_prevue'])},
+  {k:'reserves', t:'Levée des réserves', color:'#2e7cc4',
+   done:s=>!!s.s4_date||YES(s.s4_visite), date:s=>s.s4_date||''},
+  {k:'pv', t:'PV de réception', color:'#2e7cc4',
+   done:s=>YES(s.s5_pv)||!!s.s5_date, date:s=>s.s5_date||''},
+  {k:'nezha', t:'Fiche a Nezha', color:'#5a4fc4',
+   done:s=>YES(s.s6_fiche_nezha)||!!s.s6_nezha_date, date:s=>s.s6_nezha_date||''},
+  {k:'notaire', t:'Transmis au notaire', color:'#5a4fc4',
+   done:s=>YES(s.s6_notaire)||YES(s.s6_passage), date:s=>''},
+  {k:'compromis', t:'Compromis signé', color:'#5a4fc4',
+   done:s=>YES(s.s6_compromis)||!!s.s6_compromis_date, date:s=>s.s6_compromis_date||''},
+  {k:'contrat', t:'Contrat définitif', color:'#1a7a3c',
+   done:s=>YES(s.s6_contrat)||!!s.s6_contrat_date, date:s=>s.s6_contrat_date||''},
+  {k:'cles', t:'Remise des clés', color:'#1a7a3c',
+   done:s=>YES(s.s7_pv_cles), date:s=>''},
+];
+
+// Timeline = jalons franchis (passé). Renvoie [{t,date,info,color}].
+function deliveryTimeline(c){
+  const s=c.suivi||{};
+  return MILESTONES.filter(m=>{try{return m.done(s,c);}catch(e){return false;}})
+    .map(m=>({t:m.t,color:m.color,date:(m.date?m.date(s):'')||'',info:(m.info?m.info(s):'')||''}));
+}
+function deliveryProgress(c){
+  const done=deliveryTimeline(c).length; return {done, total:MILESTONES.length};
+}
+
+// ACTIONS FUTURES contextuelles (scénarios/branches du schéma). Chaque action
+// applique un patch `suivi`. On n'en propose qu'une poignée, selon l'état.
+function nextActions(c){
+  const s=c.suivi||{}, A=[];
+  const push=(label,patch,kind)=>A.push({label,patch,kind:kind||'primary'});
+  const sold = isSold(c);
+  if(!sold){
+    push('Marquer comme vendu',{statut_lot:'Vendu',statut_global:'À contacter',prochaine_action:'Appeler le client'});
+    return A;
+  }
+  // Étape 1 — contact
+  if(!(YES(s.s1_appel)||s.s1_appel_date)){
+    push('Client joignable',{s1_appel:'Effectué',s1_joignable:'joignable',statut_global:'Client contacté',prochaine_action:'Planifier la visite technique'});
+    push('Injoignable (relancer)',{s1_appel:'Effectué',s1_joignable:'injoignable',statut_global:'À contacter',prochaine_action:'Relancer le client'},'warn');
+    return A;
+  }
+  if(NO(s.s1_joignable) && !(YES(s.s2_visite)||s.s2_date)){
+    push('Joignable à la relance',{s1_relance:'Effectuée',s1_relance_joignable:'joignable',s1_joignable:'joignable',statut_global:'Client contacté',prochaine_action:'Planifier la visite technique'});
+    push('Envoyer lettre recommandée',{s1_lr_envoyee:'Oui',statut_global:'À contacter',prochaine_action:'Attendre AR / relancer'},'warn');
+    return A;
+  }
+  // Étape 2 — visite bureau
+  if(!(YES(s.s2_visite)||s.s2_date)){
+    push('Visite bureau effectuée',{s2_visite:'Effectuée',statut_global:'RDV technique fixé',prochaine_action:'Réaliser la visite technique'});
+    return A;
+  }
+  // Étape 3 — visite technique
+  if(!(s.s3_date_reelle||YES(s.s3_respecte))){
+    push('Visite technique effectuée',{s3_rdv:'Oui',s3_respecte:'Oui',statut_global:'Visite technique effectuée',prochaine_action:'Programmer la levée des réserves'});
+    push('RDV reporté',{s3_rdv:'Oui',s3_respecte:'Non',prochaine_action:'Reprogrammer la visite technique'},'warn');
+    return A;
+  }
+  // Étape 4 — levée réserves (branche : satisfait ?)
+  if(!(s.s4_date||YES(s.s4_visite))){
+    push('Réserves levées (client satisfait)',{s4_visite:'Effectuée',statut_global:'Réception signée',prochaine_action:'Signer le PV puis envoyer à Nezha'});
+    push('Réserves restantes',{s4_visite:'En cours',prochaine_action:'Nouvelle action chantier + alerte'},'warn');
+    return A;
+  }
+  // Étape 5 — PV réception
+  if(!(YES(s.s5_pv)||s.s5_date)){
+    push('PV de réception signé',{s5_pv:'Signé',statut_global:'Réception signée',prochaine_action:'Envoyer la fiche à Nezha'});
+    return A;
+  }
+  // Étape 6 — notaire
+  if(!(YES(s.s6_fiche_nezha)||s.s6_nezha_date)){
+    push('Fiche envoyée à Nezha',{s6_fiche_nezha:'Oui',statut_global:'Fiche transmise à Nezha',prochaine_action:"Suivre l'envoi au notaire"});
+    return A;
+  }
+  if(!(YES(s.s6_notaire)||YES(s.s6_passage))){
+    push('Nezha a transmis au notaire',{s6_notaire:'Oui',statut_global:'Dossier transmis au notaire',prochaine_action:'Suivre le passage chez le notaire'});
+    return A;
+  }
+  // branche financement : crédit / comptant (influe sur le compromis)
+  if(!(YES(s.s6_compromis)||s.s6_compromis_date)){
+    push('Compromis signé (comptant)',{mode_paiement:s.mode_paiement||'Comptant',s6_compromis:'Signé',statut_global:'Compromis signé',prochaine_action:'Finaliser le contrat définitif'});
+    push('Compromis signé (crédit)',{mode_paiement:'Crédit',s6_compromis:'Signé',statut_global:'Compromis signé',prochaine_action:'Suivre la banque puis chèque CDG'},'alt');
+    return A;
+  }
+  if(/cr[ée]dit/i.test(s.mode_paiement||'') && !YES(s.s6_cheque_cdg)){
+    push('Chèque CDG reçu',{s6_cheque_cdg:'Oui',prochaine_action:'Finaliser le contrat définitif'});
+  }
+  if(!(YES(s.s6_contrat)||s.s6_contrat_date)){
+    push('Contrat définitif signé',{s6_contrat:'Signé',statut_global:'Acte définitif signé',prochaine_action:'Préparer le PV de remise des clés'});
+    return A;
+  }
+  // Étape 7 — remise clés (condition : contrat signé + paiement confirmé)
+  if(!YES(s.s7_pv_cles)){
+    push('Remise des clés signée',{s7_pv_cles:'Oui',statut_global:'Livré',prochaine_action:'Dossier terminé'});
+    push('Dossier en attente (régularisation)',{prochaine_action:'Relance pièces / paiement à régulariser'},'warn');
+    return A;
+  }
+  return A;  // Livré : plus d'action
+}
+
+// Infos pour la cellule compacte (chip + jauge + bouton principal).
+function deliveryInfo(c){
+  const s=c.suivi||{};
+  const sg=s.statut_global||(isSold(c)?'À contacter':'Statut vente à renseigner');
+  const tl=deliveryTimeline(c);
+  const last=tl.length?tl[tl.length-1]:null;
+  const color=last?last.color:'#8a94a6';
+  const prog=deliveryProgress(c);
+  const acts=nextActions(c);
+  return {sg, pa:s.prochaine_action||'', color, step:prog.done, total:prog.total,
+          action:acts[0]?acts[0].label:'', actions:acts};
+}
+
+async function updateSuivi(id, patch){
+  const r=await (await fetch('/api/update_suivi',{method:'POST',headers:H,
+    body:JSON.stringify({id, suivi:patch})})).json();
+  if(r.ok){ const c=CLIENTS.find(x=>x.id===id); if(c)c.suivi=r.suivi; }
+  return r;
+}
+// Applique une action de scénario (patch suivi) après confirmation.
+async function applyAction(id, idx){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  const acts=nextActions(c); const a=acts[idx]; if(!a)return;
+  if(!confirm(`Action :\n\n« ${a.label} »\n\nEnregistrer cette étape du parcours ?`))return;
+  const r=await updateSuivi(id, a.patch);
+  if(r.ok){ toast('Étape enregistrée : '+a.label); render(); if($('#dvModal').classList.contains('open'))openDelivery(id); }
+  else toast('Erreur.');
+}
+// Depuis la cellule du tableau : applique l'action principale (la 1re).
+async function advanceDelivery(id){ await applyAction(id, 0); }
+
+// Tous les sous-champs éditables, par étape (pour la section « Détails »).
+const DELIVERY_FIELDS=[
+  {n:1,t:'Contact initial',f:[
+    ['s1_appel','1er appel'],['s1_appel_date','Date 1er appel'],['s1_joignable','Joignable ?'],
+    ['s1_relance','Relance'],['s1_relance_date','Date relance'],['s1_relance_joignable','Joignable à la relance ?'],
+    ['s1_lr_envoyee','Lettre recommandée ?'],['s1_lr_date','Date envoi lettre'],['s1_lr_statut','Statut lettre']]},
+  {n:2,t:'Visite bureau',f:[['s2_visite','Visite bureau'],['s2_date','Date'],['s2_remarque','Remarque']]},
+  {n:3,t:'Visite technique',f:[
+    ['s3_rdv','RDV donné ?'],['s3_date_prevue','Date prévue'],['s3_respecte','RDV respecté ?'],
+    ['s3_date_reportee','Date si reportée'],['s3_date_reelle','Date réelle']]},
+  {n:4,t:'Levée des réserves',f:[['s4_delai_jours','Délai (jours)'],['s4_visite','Visite de levée'],['s4_date','Date']]},
+  {n:5,t:'PV de réception',f:[['s5_pv','PV'],['s5_date','Date']]},
+  {n:6,t:'Transmission notaire',f:[
+    ['s6_fiche_nezha','Fiche a Nezha ?'],['s6_nezha_date','Date Nezha'],['s6_notaire','Notaire ?'],
+    ['s6_passage','Passage notaire'],['s6_compromis','Compromis'],['s6_compromis_date','Date compromis'],
+    ['s6_contrat','Contrat définitif'],['s6_contrat_date','Date contrat'],['s6_credit','Crédit ?'],['s6_cheque_cdg','Chèque CDG ?']]},
+  {n:7,t:'Remise des clés',f:[['s7_pv_cles','PV remise clés ?']]},
+];
+let dvCurrentId=null, dvShowDetails=false;
+function openDelivery(id){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  dvCurrentId=id;
+  const s=c.suivi||{}, info=deliveryInfo(c), tl=deliveryTimeline(c), acts=nextActions(c);
+  $('#dvName').textContent='Livraison — '+(c.nom_prenom||`Îlot ${c.ilot} · ${c.immeuble}${c.numero}`);
+  $('#dvSub').textContent=`Îlot ${c.ilot} · Imm ${c.immeuble} · ${c.type_bien} N° ${c.numero}`+(c.tag?` · ${c.tag}`:'');
+  // En-tête : statut courant + progression.
+  const head=`<div class="dvhead">
+    <span class="dvchip" style="--c:${info.color}">${esc(info.sg)}</span>
+    <span class="dvprog">${info.step}/${info.total} étapes</span>
+    <div class="dvnext">Prochaine action : <b>${esc(info.pa||'—')}</b></div>
+  </div>`;
+  // TIMELINE (passé) : jalons franchis, avec dates.
+  const tlHtml=tl.length?`<div class="tlsec"><div class="tlh">Parcours effectué</div>
+    <div class="timeline">${tl.map(e=>`
+      <div class="tlrow"><span class="tldot" style="--c:${e.color}"></span>
+        <div class="tlbody"><div class="tlt">${esc(e.t)}</div>
+          ${(e.date||e.info)?`<div class="tlmeta">${esc([e.date,e.info].filter(Boolean).join(' · '))}</div>`:''}</div></div>`).join('')}
+    </div></div>`:'<div class="tlsec"><div class="tlh">Parcours effectué</div><div class="tlempty">Aucune étape encore franchie.</div></div>';
+  // FUTUR : actions contextuelles (scénarios). Une seule, ou un choix (branche).
+  const actHtml=`<div class="actsec"><div class="tlh">Prochaine étape</div>
+    ${acts.length?acts.map((a,i)=>`<button class="actbtn ${a.kind}" data-i="${i}">${esc(a.label)}</button>`).join('')
+      :'<div class="tlempty">Dossier livré / clôturé.</div>'}</div>`;
+  // Détails (repliés par défaut) : tous les champs éditables.
+  const esc2=v=>esc(v==null?'':v);
+  const details=`<div class="dvsec"><button class="dvtoggle" id="dvToggle">${dvShowDetails?'▲ Masquer les détails':'▼ Voir / modifier tous les champs'}</button>
+    <div id="dvDetails" style="display:${dvShowDetails?'block':'none'}">
+    ${DELIVERY_FIELDS.map(sec=>`<div class="dvsub"><div class="dvsech on"><span class="dvnum">${sec.n}</span>${esc(sec.t)}</div>
+      ${sec.f.map(([k,lbl])=>`<div class="dvfield"><span class="dvfl">${esc(lbl)}</span>
+        <input class="dvinp" data-k="${k}" value="${esc2(s[k])}" placeholder="—"></div>`).join('')}</div>`).join('')}
+    <div class="savebar"><button class="btn green block" id="dvSave">Enregistrer les champs</button></div>
+    </div></div>`;
+  $('#dvBody').innerHTML=head+tlHtml+actHtml+details;
+  $('#dvBody').querySelectorAll('.actbtn').forEach(b=>b.onclick=()=>applyAction(id,+b.dataset.i));
+  $('#dvToggle').onclick=()=>{ dvShowDetails=!dvShowDetails; openDelivery(id); };
+  const sv=$('#dvSave'); if(sv)sv.onclick=saveDelivery;
+  $('#dvModal').classList.add('open');
+}
+async function saveDelivery(){
+  if(dvCurrentId==null)return;
+  const patch={};
+  $('#dvBody').querySelectorAll('.dvinp').forEach(i=>{ patch[i.dataset.k]=i.value.trim(); });
+  const r=await updateSuivi(dvCurrentId, patch);
+  if(r.ok){ toast('Suivi enregistré.'); render(); openDelivery(dvCurrentId); }
+  else toast('Erreur.');
+}
+$('#dvModal')&&($('#dvModal').onclick=e=>{ if(e.target.id==='dvModal')$('#dvModal').classList.remove('open'); });
+
+const STAGES=[
+  {k:'lettre1_envoyee', t:'1re lettre envoyée'},
+  {k:'lettre1_ar',      t:'1re lettre — AR reçu'},
+  {k:'lettre2_envoyee', t:'2e lettre envoyée'},
+  {k:'lettre2_ar',      t:'2e lettre — AR reçu'},
+  {k:'huissier',        t:'Mise en demeure (huissier)'},
+  {k:'repondu',         t:'Répondu'},
+  {k:'sans_reponse',    t:'Sans réponse'},
+];
+function fmtTs(iso){
+  if(!iso)return '';
+  const d=new Date(iso.replace(' ','T'));
+  if(isNaN(d))return iso;
+  const p=n=>(''+n).padStart(2,'0');
+  return p(d.getDate())+'/'+p(d.getMonth()+1)+' '+p(d.getHours())+':'+p(d.getMinutes());
+}
+// Couleur par étape (progression visuelle).
+const STAGE_COLOR=['#1a7a3c','#1a7a3c','#2e7cc4','#2e7cc4','#c9780b','#7a3cc4','#b02a2a'];
+let expandedStages=new Set();   // ids dont la cellule est dépliée
+function stagesCell(c){
+  const st=c.stages||{}; const locked=!!c.locked;
+  const nextIdx=STAGES.findIndex(s=>!st[s.k]);
+  const lastIdx=(()=>{ let x=-1; STAGES.forEach((s,i)=>{ if(st[s.k])x=i; }); return x; })();
+  const done=STAGES.filter(s=>st[s.k]).length;
+  const expanded=expandedStages.has(c.id);
+  const lockBtn=locked?`<button class="stlock" data-id="${c.id}" title="Verrouillée — déverrouiller (code)">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>`:'';
+  const histBtn=`<button class="sthist" data-id="${c.id}" title="Historique">
+      <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l3 2"/></svg></button>`;
+  const expBtn=`<button class="stexp" data-id="${c.id}" title="${expanded?'Réduire':'Voir toutes les étapes'}">
+      ${expanded?'▲':'▼'} ${done}/${STAGES.length}</button>`;
+
+  if(!expanded){
+    // Vue compacte : dernière étape (chip coloré) + prochaine case à cocher.
+    const last = lastIdx>=0
+      ? `<span class="stchip" style="--c:${STAGE_COLOR[lastIdx]}">${esc(STAGES[lastIdx].t)}<small>${fmtTs(st[STAGES[lastIdx].k])}</small></span>`
+      : `<span class="stchip none">Aucune étape</span>`;
+    let next='';
+    if(nextIdx>=0){
+      const s=STAGES[nextIdx]; const can=!locked;
+      next=`<label class="stnext${can?'':' dis'}" style="--c:${STAGE_COLOR[nextIdx]}">
+        <input type="checkbox" class="stchk" data-id="${c.id}" data-stage="${s.k}" ${can?'':'disabled'}>
+        <span>→ ${esc(s.t)}</span></label>`;
+    }
+    return `<div class="stagecell comp">${last}${next}<div class="stfoot">${expBtn}${lockBtn}${histBtn}</div></div>`;
+  }
+  // Vue dépliée : liste scrollable, auto-focus sur dernier coché + suivant.
+  const list=STAGES.map((s,i)=>{
+    const on=!!st[s.k]; const can=!locked && (on || i===nextIdx);
+    const foc=(i===lastIdx||i===nextIdx)?' data-foc="1"':'';
+    const ts=on?`<span class="stts">${fmtTs(st[s.k])}</span>`:'';
+    return `<label class="stage${on?' on':''}${can?'':' dis'}" style="--c:${STAGE_COLOR[i]}"${foc}>
+      <input type="checkbox" class="stchk" data-id="${c.id}" data-stage="${s.k}" ${on?'checked':''} ${can?'':'disabled'}>
+      <span class="stt">${esc(s.t)}</span>${ts}</label>`;
+  }).join('');
+  return `<div class="stagecell"><div class="stscroll" id="stsc_${c.id}">${list}</div><div class="stfoot">${expBtn}${lockBtn}${histBtn}</div></div>`;
+}
+
+let pendingStage=null;   // {id, stage, label, checked}
+async function setStage(id,stage,checked){
+  // Confirmation avant d'appliquer un changement d'étape.
+  const s=STAGES.find(x=>x.k===stage);
+  pendingStage={id,stage,checked};
+  $('#confirmMsg').innerHTML = checked
+    ? `Confirmer : marquer l'étape <b>« ${esc(s?s.t:stage)} »</b> comme faite maintenant ?`
+    : `Confirmer : <b>annuler</b> l'étape « ${esc(s?s.t:stage)} » ?`;
+  $('#confirmModal').classList.add('open');
+}
+async function applyStage(){
+  if(!pendingStage)return; const {id,stage,checked}=pendingStage; pendingStage=null;
+  $('#confirmModal').classList.remove('open');
+  const r=await (await fetch('/api/set_stage',{method:'POST',headers:H,
+    body:JSON.stringify({id,stage,checked})})).json();
+  if(r&&r.ok){ const c=CLIENTS.find(x=>x.id===id); if(c){c.stages=r.stages;} expandedStages.add(id); render();
+    toast(checked?'Étape enregistrée.':'Étape annulée.'); }
+  else if(r&&r.locked){ render(); openUnlock(id); }
+  else toast((r&&r.error)||'Erreur.');
+}
+let unlockId=null;
+function openUnlock(id){ unlockId=id; $('#unlockCode').value=''; $('#unlockErr').textContent='';
+  $('#unlockModal').classList.add('open'); setTimeout(()=>$('#unlockCode').focus(),50); }
+async function openHistory(id){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  // Ouvrir la modale TOUT DE SUITE (sinon on a l'impression que ça « gèle »).
+  $('#histTitle').textContent='Historique — '+(c.nom_prenom||('Îlot '+c.ilot+' · '+c.immeuble+c.numero));
+  $('#histBody').innerHTML='<div class="hempty">Chargement…</div>';
+  $('#histModal').classList.add('open');
+  const r=await (await fetch('/api/history?id='+id)).json();
+  const h=(r&&r.history)||[];
+  $('#histBody').innerHTML = h.length ? h.map(e=>{
+    const fld=e.field.startsWith('étape:')?('Étape : '+e.field.slice(6)):e.field;
+    const rev=e.reverted?'<span class="hrev">rétabli</span>':
+      (e.kind==='revert'?'':`<button class="hundo" data-hid="${e.id}" data-id="${id}">Rétablir</button>`);
+    return `<div class="hrow ${e.kind}">
+      <div class="hmeta"><b>${esc(fld)}</b><span>${fmtFull(e.at)}</span></div>
+      <div class="hval"><span class="hold">${esc(e.old)||'∅'}</span> → <span class="hnew">${esc(e.new)||'∅'}</span></div>
+      <div class="hact">${rev}</div></div>`;
+  }).join('') : '<div class="hempty">Aucune modification enregistrée.</div>';
+  $('#histBody').querySelectorAll('.hundo').forEach(b=>b.onclick=()=>revertHist(+b.dataset.id,+b.dataset.hid));
+}
+function fmtFull(iso){ const d=new Date((iso||'').replace(' ','T')); if(isNaN(d))return iso||'';
+  const p=n=>(''+n).padStart(2,'0');
+  return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear()+' '+p(d.getHours())+':'+p(d.getMinutes()); }
+async function revertHist(id,hid){
+  const r=await (await fetch('/api/revert_history',{method:'POST',headers:H,
+    body:JSON.stringify({id,hist_id:hid})})).json();
+  if(r&&r.ok){ await loadClients(); openHistory(id); toast('Modification rétablie.'); }
+  else if(r&&r.locked){ openUnlock(id); }
+  else toast((r&&r.error)||'Impossible.');
+}
+async function openSource(id){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  $('#srcTitle').textContent='Source — '+(c.nom_prenom||('Îlot '+c.ilot+' · '+c.immeuble+c.numero));
+  $('#srcProv').textContent=c.source_data||'Importé depuis l\'Excel';
+  $('#srcFiles').innerHTML='<div class="hempty">Chargement des pièces…</div>';
+  $('#srcModal').classList.add('open');
+  const r=await (await fetch('/api/source_files?id='+id)).json();
+  const files=(r&&r.files)||[];
+  if(!files.length){
+    $('#srcFiles').innerHTML=`<div class="hempty">${r&&r.folder?('Dossier « '+esc(r.folder)+' » introuvable sur le disque.'):'Aucune pièce liée (donnée venue de l\'Excel seulement).'}</div>`;
+    return;
+  }
+  const SVG_PDF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6M9 17h4"/></svg>';
+  const SVG_IMG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 17-5-5L5 20"/></svg>';
+  const SVG_DOC='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/></svg>';
+  const SVG_EYE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const ic={pdf:SVG_PDF,image:SVG_IMG,doc:SVG_DOC,other:SVG_DOC};
+  $('#srcFiles').innerHTML='<div class="srclist">'+files.map(f=>{
+    const role=(f.role&&f.role[0])||'Document';
+    const info=(f.role&&f.role[1])||'';
+    return `<button class="srcrow" data-url="${encodeURIComponent(f.url)}" data-kind="${f.kind}" data-name="${esc(f.name)}">
+      <span class="sri">${ic[f.kind]||SVG_DOC}</span>
+      <span class="srn"><b>${esc(role)}</b>${info?`<small>${esc(info)}</small>`:''}<em>${esc(f.name)}</em></span>
+      <span class="sre">${SVG_EYE}</span></button>`;}).join('')+'</div>';
+  $('#srcFiles').querySelectorAll('.srcrow').forEach(b=>b.onclick=()=>
+    viewPiece(decodeURIComponent(b.dataset.url),b.dataset.kind,b.dataset.name));
+}
+function viewPiece(url,kind,name){
+  $('#pieceTitle').textContent=name;
+  const box=$('#pieceBody');
+  $('#pieceModal').classList.add('open');     // ouvrir immédiatement
+  box.innerHTML='<div class="hempty">Chargement de la pièce…</div>';
+  // charger après le prochain frame (la modale s'affiche d'abord)
+  requestAnimationFrame(()=>{
+    if(kind==='image') box.innerHTML=`<img src="${url}" style="max-width:100%;max-height:72vh;display:block;margin:auto">`;
+    else if(kind==='pdf'){
+      const f=document.createElement('iframe');
+      f.style.cssText='width:100%;height:72vh;border:0'; f.src=url;
+      box.innerHTML=''; box.appendChild(f);
+    }
+    else box.innerHTML=`<div class="hempty">Aperçu non disponible pour ce type.<br><a href="${url}" target="_blank">Ouvrir / télécharger « ${esc(name)} »</a></div>`;
+  });
+}
+async function submitUnlock(){
+  const code=$('#unlockCode').value.trim();
+  const r=await (await fetch('/api/unlock_row',{method:'POST',headers:H,
+    body:JSON.stringify({id:unlockId,code})})).json();
+  if(r&&r.ok){ $('#unlockModal').classList.remove('open'); await loadClients(); toast('Ligne déverrouillée.'); }
+  else $('#unlockErr').textContent=(r&&r.error)||'Code incorrect.';
+}
+$('#confirmYes').onclick=applyStage;
+$('#confirmNo').onclick=()=>{ pendingStage=null; $('#confirmModal').classList.remove('open'); render(); };
+$('#confirmModal').onclick=e=>{ if(e.target.id==='confirmModal'){ pendingStage=null; $('#confirmModal').classList.remove('open'); render(); } };
+$('#unlockGo').onclick=submitUnlock;
+$('#unlockCode').addEventListener('keydown',e=>{ if(e.key==='Enter')submitUnlock(); });
+$('#unlockModal').onclick=e=>{ if(e.target.id==='unlockModal')$('#unlockModal').classList.remove('open'); };
+$('#histModal').onclick=e=>{ if(e.target.id==='histModal')$('#histModal').classList.remove('open'); };
+$('#verModal').onclick=e=>{ if(e.target.id==='verModal')$('#verModal').classList.remove('open'); };
+async function inlineSave(id,key,val){
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  const patch={}; patch[key]=val;
+  const r=await (await fetch('/api/update_client',{method:'POST',headers:H,
+    body:JSON.stringify({id,patch})})).json();
+  if(r&&r.ok){
+    c[key]=val;
+    if(key==='cin_str') c.cin=val.split('/').map(s=>s.trim()).filter(Boolean);
+    if(key==='quote_part') c.quote_part=val.split('/').map(s=>s.trim()).filter(Boolean);
+    if(key==='nom_prenom') c.noms=val.split('/').map(s=>s.trim()).filter(Boolean);
+    c.edited=true; c.edited_at=r.edited_at;
+    (c.edited_fields=c.edited_fields||[]).includes(key)||c.edited_fields.push(key);
+    toast('Enregistré.');
+    return true;
+  }
+  toast('Échec de l\'enregistrement.'); return false;
+}
+let cellEditing=null;
+function startCellEdit(td){
+  if(cellEditing)return;
+  const id=+td.dataset.id, key=td.dataset.k;
+  const c=CLIENTS.find(x=>x.id===id); if(!c)return;
+  cellEditing=td;
+  let cur=c[key]; if(Array.isArray(cur)) cur=cur.join(' / ');
+  cur=(cur==null?'':String(cur));
+  const w=Math.max(td.offsetWidth-10,90);
+  td.innerHTML=`<input class="cellinp" style="width:${w}px" value="${esc(cur)}">`;
+  const inp=td.querySelector('.cellinp'); inp.focus(); inp.select();
+  let done=false;
+  const finish=async(save)=>{
+    if(done)return; done=true; cellEditing=null;
+    if(save && inp.value.trim()!==cur.trim()) await inlineSave(id,key,inp.value.trim());
+    render();
+  };
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();finish(true);} if(e.key==='Escape')finish(false); });
+  inp.addEventListener('blur',()=>finish(true));
+}
+
+function rowHtml(c,idx,view){
+  const multi=owners(c).length>1?' multi':'';
+  const chk=SELECTED.has(c.id)?'checked':'';
+  const prev=view[idx-1];
+  const dupStart=c._dup && (!prev||dupKey(prev)!==dupKey(c));
+  const dupCls=c._dup?' duprow':''; const startCls=dupStart?' dupstart':'';
+  const dupBadge=dupStart?(c._resale
+      ?` <span class="dupbadge resale" title="Lot revendu : un ancien désistement puis une vente active (situation normale)">revendu</span>`
+      :` <span class="dupbadge" title="Plusieurs ventes actives avec le même Îlot/Immeuble/N°/Type — à vérifier">doublon</span>`):'';
+  // Qualité des données : signaler les fiches incomplètes.
+  const hasNom=!!(c.nom_prenom||'').trim(), hasAdr=!!(c.adresse1||'').trim();
+  const hasCin=!!((c.cin_str||'')||(c.cin&&c.cin.length));
+  const missCount=[hasNom,hasAdr,hasCin,!!(c.ville||'').trim()].filter(x=>!x).length;
+  const sold=isSold(c);
+  let qCls='';
+  if(!sold) qCls=' qfree';             // lot non vendu (libre) = gris neutre
+  else if(!hasNom) qCls=' qbad';       // vendu sans nom = anomalie (rouge pâle)
+  else if(missCount>=2) qCls=' qwarn'; // plusieurs infos manquantes = jaune
+  // CIN manquante : on ne signale que pour les lots VENDUS.
+  const cinMiss=(sold&&!hasCin)?' cinmiss':'';
+  const cinTitle=(sold&&!hasCin)?' title="CIN manquante"':'';
+  return `<tr class="${multi?'multirow':''}${SELECTED.has(c.id)?' selrow':''}${dupCls}${startCls}${qCls}">
+    <td class="selcol"><input type="checkbox" class="selchk rowchk" data-id="${c.id}" ${chk}></td>
+    <td class="num"${colHidden('ilot')}>${esc(c.ilot)}</td><td${colHidden('immeuble')}>${esc(c.immeuble)}</td>
+    <td${colHidden('etage')}>${esc(c.etage)||'—'}</td><td class="num"${colHidden('numero')}>${esc(c.numero)}${dupBadge}</td><td class="ttype"${colHidden('type_bien')}>${esc(c.type_bien)}</td>
+    <td class="name ied${hasNom?'':' miss'}" data-id="${c.id}" data-k="nom_prenom"${colHidden('nom_prenom')}>${nameCell(c)}</td>
+    <td class="tagcell"${colHidden('tag')}>${c.tag?`<span class="agtag">${esc(c.tag)}</span>`:'<span class="muted-dash">—</span>'}</td>
+    <td class="addr ied${hasAdr?'':' miss'}" data-id="${c.id}" data-k="adresse1" title="${esc(c.adresse1)}"${colHidden('adresse1')}>${esc(c.adresse1)||'—'}</td>
+    <td class="ied" data-id="${c.id}" data-k="ville"${colHidden('ville')}>${esc(c.ville)||'—'}</td>
+    <td class="ied" data-id="${c.id}" data-k="pays"${colHidden('pays')}>${esc(c.pays)||'—'}</td>
+    <td class="cin ied${cinMiss}" data-id="${c.id}" data-k="cin_str"${cinTitle}${colHidden('cin_str')}>${cinCell(c)}</td>
+    <td class="num dt ied" data-id="${c.id}" data-k="date_vente"${colHidden('date_vente')}>${esc(c.date_vente)||'—'}</td>
+    <td class="qp num ied" data-id="${c.id}" data-k="quote_part"${colHidden('quote_part')}>${qpCell(c)}</td>
+    <td class="tel ied" data-id="${c.id}" data-k="tel"${colHidden('tel')}>${esc(c.tel)||'—'}</td>
+    <td class="money num ied" data-id="${c.id}" data-k="prix_total"${colHidden('prix_total')}>${esc(c.prix_total)||'—'}</td>
+    <td class="money num ied" data-id="${c.id}" data-k="avance"${colHidden('avance')}>${esc(c.avance)||'—'}</td>
+    <td class="money num ied" data-id="${c.id}" data-k="reste"${colHidden('reste')}>${esc(c.reste)||'—'}</td>
+    <td class="money num"${colHidden('paiement_montant')}>${c.paiement_montant?esc(c.paiement_montant)+(c.paiement_mode?'<small class="pmode"> '+esc(c.paiement_mode)+'</small>':''):'—'}</td>
+    <td${colHidden('banque')}>${esc(c.banque)||'—'}</td>
+    <td class="dvtd"${colHidden('_delivery')}>${deliveryCell(c)}</td>
+    <td class="statcell">${stagesCell(c)}</td>
+    <td class="stickydocs">${docsCell(c)}</td>
+    <td class="stickylet">${letterCell(c)}</td>
+  </tr>`;
+}
+
 function render(){
   const rows=filteredSorted();
   const total=rows.length;
-  // Pagination
+  renderSummary(rows);   // les cartes reflètent le filtre actif
+  // Pagination (désactivée en mode groupé : les groupes restent entiers)
   let start=0, end=total, pages=1;
-  if(pageSize!=='all'){
+  if(pageSize!=='all' && !groupMode){
     pages=Math.max(1,Math.ceil(total/pageSize));
     if(curPage>pages)curPage=pages;
     start=(curPage-1)*pageSize; end=Math.min(total,start+pageSize);
@@ -1057,36 +2308,44 @@ function render(){
   $('#count').textContent=total?`${start+1}–${end} sur ${total}`:`0 sur ${CLIENTS.length}`;
   const tb=$('#tbody');
   if(!view.length){tb.innerHTML=`<tr><td colspan="${COLS.length}" class="empty" style="padding:40px">Aucun résultat.</td></tr>`;renderPager(total,pages);return;}
-  // Repérer les frontières de groupes de doublons (pour un liseré visuel).
-  tb.innerHTML=view.map((c,idx)=>{
-    const multi=owners(c).length>1?' multi':'';
-    const chk=SELECTED.has(c.id)?'checked':'';
-    const prev=view[idx-1];
-    const dupStart=c._dup && (!prev||dupKey(prev)!==dupKey(c));
-    const dupCls=c._dup?' duprow':''; const startCls=dupStart?' dupstart':'';
-    const dupBadge=dupStart?`<span class="dupbadge" title="Plusieurs biens avec le même Îlot/Immeuble/N°/Type">doublon</span>`:'';
-    return `<tr class="${multi?'multirow':''}${SELECTED.has(c.id)?' selrow':''}${dupCls}${startCls}">
-    <td class="selcol"><input type="checkbox" class="selchk rowchk" data-id="${c.id}" ${chk}></td>
-    <td class="num dt">${esc(c.date_courrier)||'—'}</td>
-    <td class="num">${esc(c.ilot)}</td><td>${esc(c.immeuble)}</td>
-    <td class="num">${esc(c.numero)}${dupBadge}</td><td class="ttype">${esc(c.type_bien)}</td><td>${esc(c.etage)||'—'}</td>
-    <td class="name">${nameCell(c)}</td>
-    <td class="cin">${cinCell(c)}</td>
-    <td class="qp num">${qpCell(c)}</td>
-    <td class="tel">${esc(c.tel)||'—'}</td>
-    <td class="money num">${esc(c.prix_total)||'—'}</td>
-    <td class="money num">${esc(c.avance)||'—'}</td>
-    <td class="money num">${esc(c.reste)||'—'}</td>
-    <td>${pill(c.statut)}</td>
-    <td class="stickydocs">${docsCell(c)}</td>
-    <td class="stickylet">${letterCell(c)}</td>
-  </tr>`;}).join('');
+  // Mode groupé : insérer des en-têtes Îlot › Immeuble (sans doublons visuels).
+  let html='';
+  if(groupMode){
+    let curI=null, curM=null;
+    view.forEach((c,idx)=>{
+      const il=String(c.ilot||'—'), im=String(c.immeuble||'—');
+      if(il!==curI){ curI=il; curM=null;
+        html+=`<tr class="grpi"><td colspan="${COLS.length}">Îlot ${esc(il)}</td></tr>`; }
+      if(im!==curM){ curM=im;
+        const n=view.filter(x=>String(x.ilot||'—')===il&&String(x.immeuble||'—')===im).length;
+        html+=`<tr class="grpm"><td colspan="${COLS.length}">${c.type_bien&&/commerce|magasin/i.test(c.type_bien)&&im==='—'?'Commerces':'Immeuble '+esc(im)} <span class="grpn">${n}</span></td></tr>`; }
+      html+=rowHtml(c,idx,view);
+    });
+  } else {
+    html=view.map((c,idx)=>rowHtml(c,idx,view)).join('');
+  }
+  tb.innerHTML=html;
   tb.querySelectorAll('.letter-btn').forEach(b=>{ b.onclick=()=>openLetterSmart(+b.dataset.id,b); });
   tb.querySelectorAll('.docs-btn').forEach(b=>{ b.onclick=()=>openDetail(+b.dataset.id); });
   tb.querySelectorAll('.rowchk').forEach(b=>{ b.onclick=()=>{
     const id=+b.dataset.id; if(b.checked)SELECTED.add(id); else SELECTED.delete(id);
     b.closest('tr').classList.toggle('selrow',b.checked); updateSelBar();
   };});
+  // Édition inline : double-clic sur une cellule éditable.
+  tb.querySelectorAll('td.ied').forEach(td=>{ td.ondblclick=()=>startCellEdit(td); });
+  // Suivi lettres : étapes (checkbox), verrou, historique.
+  tb.querySelectorAll('.stchk').forEach(chk=>{ chk.onchange=()=>setStage(+chk.dataset.id,chk.dataset.stage,chk.checked); });
+  // Parcours de livraison : bouton d'action contextuel + détails.
+  tb.querySelectorAll('.dvact').forEach(b=>{ b.onclick=()=>advanceDelivery(+b.dataset.id); });
+  tb.querySelectorAll('.dvmore').forEach(b=>{ b.onclick=()=>openDelivery(+b.dataset.id); });
+  tb.querySelectorAll('.stlock').forEach(b=>{ b.onclick=()=>openUnlock(+b.dataset.id); });
+  tb.querySelectorAll('.sthist').forEach(b=>{ b.onclick=()=>openHistory(+b.dataset.id); });
+  tb.querySelectorAll('.stexp').forEach(b=>{ b.onclick=()=>{ const id=+b.dataset.id;
+    if(expandedStages.has(id))expandedStages.delete(id); else expandedStages.add(id); render(); }; });
+  // Auto-scroll : focaliser sur la dernière étape cochée / la suivante.
+  tb.querySelectorAll('.stscroll').forEach(sc=>{ const f=sc.querySelector('[data-foc="1"]');
+    if(f) sc.scrollTop=Math.max(0,f.offsetTop-sc.offsetTop-6); });
+  tb.querySelectorAll('.srcinfo').forEach(b=>{ b.onclick=e=>{e.stopPropagation();openSource(+b.dataset.id);}; });
   renderPager(total,pages);
 }
 
@@ -1113,24 +2372,39 @@ function renderPager(total,pages){
   $('#pgNav').querySelectorAll('.pgb').forEach(b=>b.onclick=()=>{curPage=+b.dataset.p;render();});
 }
 
-// Vue et génération font la même chose : ouvrir la lettre. Si déjà en cache
-// (à jour), on ouvre directement ; sinon on génère puis on ouvre.
+// Ouvre le PDF de la lettre dans un NOUVEL onglet (l'utilisateur le consulte
+// puis le télécharge s'il le souhaite). Repli HTML/DOCX si pas de PDF.
+function openLetterWindow(c){
+  const rel=c.letter_pdf||c.letter_html||c.letter_docx;
+  if(!rel){ toast('Lettre introuvable.'); return; }
+  window.open('/file?p='+encodeURIComponent(rel)+'&t='+Date.now(), '_blank');
+}
+// Compat : certains appels historiques passent encore par ce nom.
+function openOrDownloadLetter(c){ openLetterWindow(c); }
+
+// « Générer » régénère TOUJOURS la lettre (force) pour refléter le modèle à
+// jour, puis l'ouvre dans un nouvel onglet.
 async function openLetterSmart(id,btn){
   const c=CLIENTS.find(x=>x.id===id); if(!c)return;
-  if(c.letter_html){ viewLetter(id); return; }
-  const prev=btn?btn.innerHTML:'';
   if(btn){btn.classList.add('busy');btn.innerHTML='<span class="spin"></span><span>Création…</span>';}
   try{
     const r=await (await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({id})})).json();
-    if(r&&r.ok){ c.letter_html=r.letter_html; c.letter_docx=r.letter_docx; viewLetter(id); }
+      body:JSON.stringify({id,force:true})})).json();
+    if(r&&r.ok){ c.letter_html=r.letter_html; c.letter_docx=r.letter_docx; c.letter_pdf=r.letter_pdf; openLetterWindow(c); }
+    else { toast('Échec de la génération.'); }
   }finally{ render(); }
 }
 
 function viewLetter(id){
   const c=CLIENTS.find(x=>x.id===id); if(!c)return;
   $('#vTitle').textContent='Lettre — '+(c.nom_prenom||`Îlot ${c.ilot} · ${c.immeuble}${c.numero}`);
-  $('#vFrame').src='/letter/'+id+'?t='+Date.now();
+  // Aperçu : le PDF si disponible (fidèle à l'impression), sinon le HTML.
+  $('#vFrame').src=c.letter_pdf
+    ? '/file?p='+encodeURIComponent(c.letter_pdf)+'&t='+Date.now()
+    : '/letter/'+id+'?t='+Date.now();
+  const pf=$('#vPdf');
+  if(c.letter_pdf){pf.style.display='';pf.href='/file?dl=1&p='+encodeURIComponent(c.letter_pdf);}
+  else pf.style.display='none';
   const dx=$('#vDocx');
   if(c.letter_docx){dx.style.display='';dx.href='/file?dl=1&p='+encodeURIComponent(c.letter_docx);}
   else dx.style.display='none';
@@ -1223,6 +2497,9 @@ function openDetail(id){
   add('Reste à payer',c.reste?c.reste+' DH':'','reste');
   add('N° de reçu',c.recu_num,'recu_num'); add('Montant du reçu',c.recu_montant,'recu_montant');
   add('Date du reçu',c.recu_date,'recu_date'); add('Date fiche',c.date_courrier,'date_courrier');
+  // Paiement (chèque / virement)
+  add('Paiement',c.paiement_montant?(c.paiement_montant+' DH'+(c.paiement_mode?' · '+c.paiement_mode:'')):'','paiement_montant');
+  add('Banque',c.banque,'banque'); add('RIB',c.rib,'rib');
   const docs=(c.documents||[]).map(d=>{
     const label=DOC_LABELS[d.type]||d.name;
     return `<button class="docfile" data-rel="${encodeURIComponent(d.rel)}" data-label="${esc(label)}">
@@ -1277,7 +2554,7 @@ function startFieldEdit(btn,id){
     ${unit?`<span class="dunit">${esc(unit.trim())}</span>`:''}
     ${isEdited?`<button class="ferevert" title="Rétablir la valeur d'origine">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>`:''}
-    <button class="feok" title="Valider">✓</button>
+    <button class="feok" title="Valider"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" style="vertical-align:-1px"><path d="M20 6 9 17l-5-5"/></svg></button>
     <button class="fecancel" title="Annuler">×</button></span>`;
   const inp=fv.querySelector('.dedit'); inp.focus(); inp.select();
   const commit=async()=>{
@@ -1472,12 +2749,21 @@ $('#pkUp').onclick=()=>pkBrowse($('#pkUp').dataset.p);
 $('#pkChoose').onclick=()=>{ $('#root').value=pkCurrent; closePicker(); };
 
 let pkSearchTimer=null, pkSearchDepth=2;
-$('#pkSearch').addEventListener('input',e=>{
-  clearTimeout(pkSearchTimer);
-  const term=e.target.value.trim();
+// Recherche de dossier : on lance sur clic « Rechercher » ou Entrée
+// (la recherche récursive peut être lente, on évite de la déclencher à chaque frappe).
+function runFolderSearch(){
+  const term=$('#pkSearch').value.trim();
   pkSearchDepth=2;
   if(term.length<2){ pkBrowse(pkCurrent); return; }
-  pkSearchTimer=setTimeout(()=>doFolderSearch(term),280);
+  doFolderSearch(term);
+}
+$('#pkSearchGo')&&($('#pkSearchGo').onclick=runFolderSearch);
+$('#pkSearch').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); runFolderSearch(); }
+});
+$('#pkSearch').addEventListener('input',e=>{
+  // si on vide le champ, on revient à la navigation normale
+  if(e.target.value.trim().length<2){ clearTimeout(pkSearchTimer); pkBrowse(pkCurrent); }
 });
 async function doFolderSearch(term){
   $('#pkList').innerHTML='<div class="pkempty">Recherche…</div>';
@@ -1508,6 +2794,74 @@ async function doFolderSearch(term){
 /* ---- filters ---- */
 ['#q','#fType','#fStatut'].forEach(s=>$(s).addEventListener('input',()=>{curPage=1;render();}));
 ['#fType','#fStatut'].forEach(s=>$(s).addEventListener('change',()=>{curPage=1;render();}));
+// Îlot / Commercial(e) : on mémorise la sélection (reprendre où on s'est arrêté).
+$('#fIlot')&&$('#fIlot').addEventListener('change',e=>{
+  localStorage.setItem('bv_ilot',e.target.value); curPage=1; renderImmTabs(); render();});
+$('#fTag')&&$('#fTag').addEventListener('change',e=>{
+  localStorage.setItem('bv_tag',e.target.value); curPage=1; render();});
+$('#fStatut')&&$('#fStatut').addEventListener('change',e=>{localStorage.setItem('bv_statut',e.target.value);curPage=1;render();});
+
+/* ---- Filtre par complétude (infos requises) ---- */
+function renderFieldList(){
+  const list=$('#fldList'); if(!list)return;
+  // % de présence calculé sur les clients VENDUS (ceux qui ont une lettre)
+  const sellers=CLIENTS.filter(isSold); const N=sellers.length||1;
+  list.innerHTML=FLD_DEFS.map(d=>{
+    const n=sellers.filter(d.has).length, p=Math.round(100*n/N);
+    return `<label class="fldopt"><input type="checkbox" data-k="${d.k}" ${fldChecked.has(d.k)?'checked':''}>
+      <span>${esc(d.t)}</span><span class="fldpct">${p}%</span></label>`;
+  }).join('');
+  list.querySelectorAll('input[type=checkbox]').forEach(ch=>ch.onchange=()=>{
+    if(ch.checked)fldChecked.add(ch.dataset.k); else fldChecked.delete(ch.dataset.k);
+    syncFieldBtn(); curPage=1; render();
+  });
+}
+function syncFieldBtn(){
+  const b=$('#fldBtn'), lbl=$('#fldLbl'); if(!b)return;
+  const names=FLD_DEFS.filter(d=>fldChecked.has(d.k)).map(d=>d.t);
+  if(names.length){
+    b.classList.add('active');
+    lbl.textContent=(fldMode==='without'?'Sans ':'')+names.join(' + ');
+  }else{ b.classList.remove('active'); lbl.textContent='Infos requises'; }
+}
+(function initFieldFilter(){
+  const btn=$('#fldBtn'), pop=$('#fldPop'); if(!btn)return;
+  btn.onclick=e=>{ e.stopPropagation(); renderFieldList(); pop.classList.toggle('open'); };
+  pop.onclick=e=>e.stopPropagation();
+  document.addEventListener('click',()=>pop.classList.remove('open'));
+  document.querySelectorAll('input[name=fldmode]').forEach(r=>r.onchange=()=>{
+    fldMode=document.querySelector('input[name=fldmode]:checked').value; syncFieldBtn(); curPage=1; render();
+  });
+  $('#fldClear').onclick=()=>{ fldChecked.clear(); document.querySelector('input[name=fldmode][value=with]').checked=true; fldMode='with'; renderFieldList(); syncFieldBtn(); curPage=1; render(); };
+})();
+// Onglets par immeuble (défaut) ↔ tout en une table regroupée
+function syncGroupBtn(){
+  // bouton actif = vue « tout » ; inactif = vue par onglets
+  $('#groupLbl').textContent = groupMode ? 'Vue par onglets' : 'Voir tout en une table';
+  $('#groupBtn').classList.toggle('active', groupMode);
+}
+$('#groupBtn').onclick=()=>{ groupMode=!groupMode; localStorage.setItem('bv_group',groupMode?'1':'0');
+  syncGroupBtn(); renderImmTabs(); curPage=1; render(); };
+syncGroupBtn();
+// Export Excel des lignes AFFICHÉES (filtre actif), vers une copie du gabarit.
+$('#exportFilteredBtn')&&($('#exportFilteredBtn').onclick=async()=>{
+  // on exporte la sélection si des cases sont cochées, sinon le filtre affiché.
+  let ids=[...SELECTED];
+  if(!ids.length) ids=filteredSorted().map(c=>c.id);
+  if(!ids.length){ toast('Rien à exporter.'); return; }
+  const b=$('#exportFilteredBtn'); b.disabled=true; const prev=b.innerHTML;
+  b.innerHTML='<span>Export…</span>';
+  try{
+    const r=await (await fetch('/api/export_filtered',{method:'POST',headers:H,
+      body:JSON.stringify({ids})})).json();
+    if(r.ok){
+      const a=document.createElement('a');
+      a.href='/api/download_export?name='+encodeURIComponent(r.name);
+      a.download=r.name; document.body.appendChild(a); a.click(); a.remove();
+      toast(`${r.written} lot(s) exporté(s) vers le classeur Suivi.`);
+    } else toast('Erreur : '+(r.error||''));
+  }finally{ b.disabled=false; b.innerHTML=prev; }
+});
 // taille de page (mémorisée)
 $('#pageSize').value=String(pageSize);
 $('#pageSize').addEventListener('change',e=>{
@@ -1536,14 +2890,55 @@ async function loadProject(){
   const sl=$('#srcLock');
   if(d.source_excel){
     sl.style.display='';
+    const canSave=!!d.source_excel_path;
     sl.innerHTML=`<div class="sl-top">Source : <b>${esc(d.source_excel)}</b> (Excel)</div>
       <label class="sl-lock"><input type="checkbox" id="slToggle" ${d.source_lock?'checked':''}>
         Se limiter à cette liste (ne pas ajouter de nouveaux biens au scan)</label>
+      ${canSave?`<button class="sl-save" id="slSave">Enregistrer les modifications dans cet Excel</button>
+        <div class="sl-bks" id="slBks"></div>`:
+        `<div class="sl-bks">Pour pouvoir réenregistrer dans le fichier d'origine, réimportez-le via « Importer un Excel… » (choix par emplacement).</div>`}
       <button class="sl-flush" id="slFlush">Vider ces données</button>`;
     $('#slToggle').onclick=async e=>{ await fetch('/api/source_lock',{method:'POST',headers:H,
       body:JSON.stringify({locked:e.target.checked})}); toast(e.target.checked?'Verrouillé sur l\'Excel.':'Déverrouillé.'); };
     $('#slFlush').onclick=flushData;
+    if(canSave){ $('#slSave').onclick=saveBackExcel; loadBackups(); }
   } else { sl.style.display='none'; }
+}
+
+async function saveBackExcel(){
+  const btn=$('#slSave'); if(!btn)return;
+  if(!confirm('Enregistrer vos modifications dans le fichier Excel d\'origine ?\n\nUne sauvegarde horodatée est créée automatiquement avant toute écriture.'))return;
+  btn.disabled=true; const old=btn.textContent; btn.textContent='Enregistrement…';
+  try{
+    const r=await (await fetch('/api/excel_saveback',{method:'POST',headers:H,body:'{}'})).json();
+    if(r.ok){ toast(r.written+' ligne(s) enregistrée(s). Sauvegarde : '+(r.backup||'—')); loadBackups(); }
+    else toast(r.error||'Enregistrement impossible.');
+  }finally{ btn.disabled=false; btn.textContent=old; }
+}
+
+let BACKUPS=[];
+async function loadBackups(){
+  const box=$('#slBks'); if(!box)return;
+  try{
+    const r=await (await fetch('/api/excel_backups')).json();
+    BACKUPS=(r&&r.backups)||[];
+    const n=BACKUPS.length;
+    box.innerHTML=`<a class="bk-dl" href="/api/excel_download?which=current" title="Télécharger la version actuelle de l'Excel">Télécharger l'Excel actuel</a>
+      ${n?`<button class="bk-ver" id="bkVer">Versions précédentes (${n})</button>`:'<span class="bk-none">Aucune sauvegarde.</span>'}`;
+    const v=$('#bkVer'); if(v) v.onclick=openVersions;
+  }catch(e){ box.innerHTML=''; }
+}
+function fmtBkDate(name){
+  const m=name.match(/(\d{4})-(\d{2})-(\d{2})_(\d{2})h(\d{2})/);
+  return m?`${m[3]}/${m[2]}/${m[1]} à ${m[4]}:${m[5]}`:name;
+}
+function openVersions(){
+  $('#verBody').innerHTML = BACKUPS.length ? BACKUPS.map((b,i)=>
+    `<a class="verrow" href="/api/excel_download?which=${encodeURIComponent(b.name)}" title="Télécharger">
+      <span class="veri"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg></span>
+      <span class="vern">${i===0?'<b>Plus récente</b> — ':''}${esc(fmtBkDate(b.name))}</span>
+      <span class="verk">Excel</span></a>`).join('') : '<div class="hempty">Aucune version.</div>';
+  $('#verModal').classList.add('open');
 }
 async function flushData(){
   if(!confirm('Vider toutes les données de ce projet ? (les projets enregistrés ailleurs ne sont pas touchés)'))return;
@@ -1607,15 +3002,19 @@ function openSaveAs(){
 let gateMode='enter';
 async function initGate(){
   const d=await (await fetch('/api/access_status')).json();
+  // Session déjà mémorisée sur ce navigateur : on n'affiche pas le code.
+  if(d.has_code && d.remembered){ enterApp(); return; }
   if(!d.has_code){
     gateMode='create';
     $('#gateTitle').textContent='Bienvenue';
     $('#gateMsg').textContent='Créez un code d\'accès pour protéger vos données.';
     $('#gateCode2').style.display='';
     $('#gateGo').textContent='Créer le code';
+    $('#gateRememberRow').style.display='none';
     $('#gate').classList.add('open'); $('#gateCode').focus();
   } else {
     gateMode='enter';
+    $('#gateRememberRow').style.display='';
     $('#gate').classList.add('open'); $('#gateCode').focus();
   }
 }
@@ -1631,11 +3030,25 @@ async function submitGate(){
     await fetch('/api/access_set',{method:'POST',headers:H,body:JSON.stringify({code})});
     enterApp();
   } else {
-    const r=await (await fetch('/api/access_check',{method:'POST',headers:H,body:JSON.stringify({code})})).json();
+    const remember=$('#gateRemember')?$('#gateRemember').checked:true;
+    const r=await (await fetch('/api/access_check',{method:'POST',headers:H,body:JSON.stringify({code,remember})})).json();
     if(r.ok) enterApp(); else {$('#gateErr').textContent='Code incorrect.';$('#gateCode').value='';$('#gateCode').focus();}
   }
 }
-function enterApp(){ $('#gate').classList.remove('open'); loadCaps(); loadProject(); loadFolders(); tick(); }
+function enterApp(){ $('#gate').classList.remove('open'); loadCaps(); loadProject(); loadFolders(); tick(); maybeStart(); }
+
+// Première ouverture d'un projet vide : proposer Excel ou base vide.
+async function maybeStart(){
+  try{
+    const p=await (await fetch('/api/project')).json();
+    const c=await (await fetch('/api/clients')).json();
+    const hasClients = c.clients && c.clients.length;
+    // Afficher TOUT DE SUITE les clients déjà présents (même si un scan tourne).
+    if(hasClients) await loadClients();
+    const empty=!hasClients && !p.source_excel && !(p.folders&&p.folders.length);
+    if(empty) openStart();
+  }catch(e){}
+}
 
 /* ===================== RÉGLAGES ===================== */
 $('#settingsBtn').onclick=openSettings;
@@ -1650,6 +3063,43 @@ async function openSettings(){
 }
 function closeSettings(){$('#settings').classList.remove('open');}
 $('#settings').onclick=e=>{if(e.target.id==='settings')closeSettings();};
+
+/* ---- Maintenance : recalcul pays + flush history/statuts/lettres ---- */
+async function postJSON(url){ return (await fetch(url,{method:'POST',headers:H,body:'{}'})).json(); }
+$('#setExportSuivi').onclick=async()=>{
+  const b=$('#setExportSuivi'); b.disabled=true; const t=b.textContent; b.textContent='Export…';
+  try{
+    const r=await postJSON('/api/export_suivi');
+    if(r.ok) toast(`Classeur Suivi mis à jour : ${r.written} lots (Îlot 1)`
+      +(r.extra_sheet?` + ${r.extra_sheet} (feuille « Autres lots »)`:'')
+      +`. Sauvegarde créée.`);
+    else toast('Erreur : '+(r.error||''));
+  }finally{ b.disabled=false; b.textContent=t; }
+};
+$('#setRederivePays').onclick=async()=>{
+  const b=$('#setRederivePays'); b.disabled=true; const t=b.textContent; b.textContent='Calcul…';
+  try{
+    const r=await postJSON('/api/rederive_pays');
+    if(r.ok){ await loadClients();
+      toast(r.count? `${r.count} pays corrigé(s).` : 'Aucun changement — tous les pays sont déjà corrects.'); }
+    else toast('Erreur.');
+  }finally{ b.disabled=false; b.textContent=t; }
+};
+$('#setFlushHistory').onclick=async()=>{
+  if(!confirm("Vider TOUT l'historique des modifications ? Cette action est définitive.")) return;
+  const r=await postJSON('/api/flush_history');
+  if(r.ok){ toast(`Historique vidé (${r.cleared} entrée(s)).`); } else toast('Erreur.');
+};
+$('#setFlushStages').onclick=async()=>{
+  if(!confirm("Réinitialiser TOUS les statuts (étapes de lettre) et leurs verrous ? Cette action est définitive.")) return;
+  const r=await postJSON('/api/flush_stages');
+  if(r.ok){ await loadClients(); toast(`Statuts réinitialisés (${r.cleared} bien(s)).`); } else toast('Erreur.');
+};
+$('#setFlushLetters').onclick=async()=>{
+  if(!confirm("Supprimer toutes les lettres générées ? Elles seront régénérées à la demande. Les données clients restent intactes.")) return;
+  const r=await postJSON('/api/flush_letters');
+  if(r.ok){ await loadClients(); toast(`Lettres supprimées (${r.removed} fichier(s)/dossier(s)).`); } else toast('Erreur.');
+};
 let newLogoData=null;
 $('#setLogoPick').onclick=()=>$('#setLogoFile').click();
 $('#setLogoFile').addEventListener('change',e=>{
@@ -1668,6 +3118,10 @@ $('#setSave').onclick=async()=>{
 $('#setChangeCode').onclick=async()=>{
   const code=prompt('Nouveau code d\'accès (4 caractères min) :');
   if(code&&code.length>=4){ await fetch('/api/access_set',{method:'POST',headers:H,body:JSON.stringify({code})}); toast('Code modifié.'); }
+};
+$('#setLogout').onclick=async()=>{
+  await fetch('/api/access_logout',{method:'POST',headers:H});
+  location.reload();
 };
 
 /* ===================== GÉNÉRER LES LETTRES ===================== */
@@ -1704,30 +3158,179 @@ $('#genGo').onclick=async()=>{
   if(!out){$('#genWarn').textContent='Choisissez un dossier de destination.';return;}
   if(!formats.length){$('#genWarn').textContent='Choisissez au moins un format.';return;}
   $('#genGo').disabled=true; $('#genGo').textContent='Génération…';
+  $('#genWarn').style.color=''; $('#genWarn').textContent='Démarrage…';
   try{
     const r=await (await fetch('/api/generate_batch',{method:'POST',headers:H,body:JSON.stringify({
       ids:[...SELECTED], out_dir:out, formats, date:$('#genDate').value.trim()})})).json();
     if(!r.ok){$('#genWarn').textContent=r.error||'Erreur';return;}
-    const nFiles=r.files.reduce((a,f)=>a+f.files.length,0);
-    const warns=r.files.flatMap(f=>f.warnings);
+    // Génération en tâche de fond : on interroge la progression (évite le 502).
+    const res=await pollBatch();
+    if(res.status==='error'){ $('#genWarn').textContent='Erreur : '+(res.error||''); return; }
+    const nFiles=(res.files||[]).reduce((a,f)=>a+f.files.length,0);
+    const warns=(res.files||[]).flatMap(f=>f.warnings);
     closeGen();
-    toast(nFiles+' fichier(s) créé(s) dans le dossier choisi.'+(warns.length?' (PDF non disponible — voir note)':''));
+    // Les lettres sont enregistrées individuellement + un PDF combiné.
+    // On ouvre le PDF combiné (toutes les lettres) dans un nouvel onglet.
+    if(res.combined){ window.open('/api/batch_combined?t='+Date.now(), '_blank'); }
+    toast(nFiles+' lettre(s) enregistrée(s)'+(res.combined?' + PDF combiné ouvert':'')
+      +(warns.length?' (certains PDF indisponibles)':'')+'.');
   }finally{ $('#genGo').disabled=false; $('#genGo').textContent='Générer'; }
 };
+// Interroge /api/batch_progress jusqu'à la fin et met à jour la barre texte.
+function pollBatch(){
+  return new Promise(resolve=>{
+    const tick=async()=>{
+      let s; try{ s=await (await fetch('/api/batch_progress')).json(); }catch(e){ setTimeout(tick,800); return; }
+      if(s.total){ $('#genWarn').textContent=`${s.done}/${s.total} — ${s.msg||''}`; }
+      if(s.status==='done'||s.status==='error'){ resolve(s); return; }
+      setTimeout(tick,600);
+    };
+    tick();
+  });
+}
+
+/* ===================== DÉMARRAGE ===================== */
+function openStart(){ $('#startModal').classList.add('open'); }
+$('#startClose').onclick=()=>$('#startModal').classList.remove('open');
+$('#startModal').onclick=e=>{ if(e.target.id==='startModal')$('#startModal').classList.remove('open'); };
+$('#soImport').onclick=()=>{ $('#startModal').classList.remove('open'); openImport(); };
+$('#soEmpty').onclick=()=>{ $('#startModal').classList.remove('open');
+  toast('Base vide : ajoutez des dossiers puis lancez le scan.'); $('#browseBtn').focus(); };
 
 /* ===================== IMPORT EXCEL ===================== */
-function openImport(){
-  const inp=document.createElement('input'); inp.type='file'; inp.accept='.xlsx';
-  inp.onchange=async()=>{
-    const f=inp.files[0]; if(!f)return;
-    const fd=new FormData(); fd.append('file',f);
-    toast('Import en cours…');
-    const r=await (await fetch('/api/import_excel',{method:'POST',body:fd})).json();
-    if(r.ok){ toast(r.count+' lignes importées.'); location.reload(); }
-    else toast(r.error||'Import impossible.');
-  };
-  inp.click();
+// 1) on choisit le fichier côté serveur (pour pouvoir y réécrire ensuite)
+const XL_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="#1a7a3c" stroke-width="1.7"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="m9.5 12 5 5m0-5-5 5"/></svg>';
+let xlCurrent='', xlSortMode=localStorage.getItem('bv_xlsort')||'date-desc', xlSearchTimer=null, xlSearchDepth=4;
+function openImport(){ $('#xlPicker').classList.add('open'); $('#xlSearch').value=''; $('#xlSort').value=xlSortMode; xlBrowse(FOLDERS[FOLDERS.length-1]||''); }
+
+async function xlBrowse(path){
+  const [sort,order]=xlSortMode.split('-');
+  const d=await (await fetch('/api/browse?files=xlsx,xls&path='+encodeURIComponent(path||'')
+    +'&sort='+sort+'&order='+order)).json();
+  xlCurrent=d.path; $('#xlPath').textContent=d.path; $('#xlUp').dataset.p=d.parent;
+  if(d.shortcuts){
+    $('#xlPlaces').innerHTML='<div class="pkpl-h">Emplacements</div>'+d.shortcuts.map(s=>
+      `<button class="pkplace${s.path===d.path?' cur':''}" data-p="${encodeURIComponent(s.path)}">
+        ${FOLDER_SVG}<span>${esc(s.label)}</span></button>`).join('');
+    $('#xlPlaces').querySelectorAll('.pkplace').forEach(b=>b.onclick=()=>xlBrowse(decodeURIComponent(b.dataset.p)));
+  }
+  const dirs=(d.dirs||[]).map(x=>
+    `<button class="pkitem" data-p="${encodeURIComponent(x.path)}">
+      ${FOLDER_SVG}<span class="pknm">${esc(x.name)}</span>
+      ${x.date?`<span class="pkdate">${esc(x.date)}</span>`:''}<span class="pkgo">›</span></button>`).join('');
+  const files=(d.files||[]).map(x=>
+    `<button class="pkfile" data-f="${encodeURIComponent(x.path)}">
+      ${XL_SVG}<span class="pknm">${esc(x.name)}</span><span class="pkdate">${esc(x.date||'')}</span></button>`).join('');
+  const body=(dirs+files)||'<div class="pkempty">Aucun sous-dossier ni fichier Excel ici.<br>Cherchez par nom ci-dessous, ou remontez d\'un niveau.</div>';
+  $('#xlList').innerHTML=body;
+  $('#xlList').querySelectorAll('.pkitem').forEach(b=>b.onclick=()=>xlBrowse(decodeURIComponent(b.dataset.p)));
+  $('#xlList').querySelectorAll('.pkfile').forEach(b=>b.onclick=()=>chooseExcel(decodeURIComponent(b.dataset.f)));
 }
+$('#xlUp').onclick=()=>xlBrowse($('#xlUp').dataset.p);
+$('#xlSort').addEventListener('change',e=>{ xlSortMode=e.target.value; localStorage.setItem('bv_xlsort',xlSortMode);
+  if($('#xlSearch').value.trim().length>=2) xlSearchFiles($('#xlSearch').value.trim()); else xlBrowse(xlCurrent); });
+$('#xlSearch').addEventListener('input',e=>{
+  clearTimeout(xlSearchTimer); const term=e.target.value.trim(); xlSearchDepth=4;
+  if(term.length<2){ xlBrowse(xlCurrent); return; }
+  xlSearchTimer=setTimeout(()=>xlSearchFiles(term),280);
+});
+async function xlSearchFiles(term){
+  $('#xlList').innerHTML='<div class="pkempty">Recherche…</div>';
+  const d=await (await fetch('/api/find_files?files=xlsx,xls&q='+encodeURIComponent(term)
+    +'&base='+encodeURIComponent(xlCurrent||'')+'&depth='+xlSearchDepth)).json();
+  let res=d.results||[];
+  // tri selon le mode choisi
+  const [sort,order]=xlSortMode.split('-');
+  if(sort==='name') res.sort((a,b)=>a.name.toLowerCase()<b.name.toLowerCase()?(order==='asc'?-1:1):(order==='asc'?1:-1));
+  const re=new RegExp('('+term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+  if(!res.length){ $('#xlList').innerHTML='<div class="pkempty">Aucun fichier Excel trouvé à cet emplacement.</div>'; return; }
+  $('#xlList').innerHTML=res.map(x=>{
+    const name=esc(x.name).replace(re,'<b>$1</b>');
+    return `<button class="pkfile" data-f="${encodeURIComponent(x.path)}">
+      ${XL_SVG}<span class="pknm">${name}<small>${esc(x.parent||'')}</small></span>
+      <span class="pkdate">${esc(x.date||'')}</span></button>`;
+  }).join('')+(d.deep_more?`<button class="pkmore" id="xlMore">Chercher plus profondément…</button>`:'');
+  $('#xlList').querySelectorAll('.pkfile').forEach(b=>b.onclick=()=>chooseExcel(decodeURIComponent(b.dataset.f)));
+  const more=$('#xlMore'); if(more) more.onclick=()=>{ xlSearchDepth+=3; xlSearchFiles(term); };
+}
+
+// 2) on analyse le fichier et on affiche l'écran de correspondance
+async function chooseExcel(path){
+  $('#xlPicker').classList.remove('open');
+  toast('Analyse du fichier…');
+  const info=await (await fetch('/api/excel_inspect?path='+encodeURIComponent(path))).json();
+  if(!info.ok){ toast(info.error||'Lecture impossible.'); return; }
+  openMapModal(info);
+}
+
+// 3) écran « quelle colonne = quelle donnée » (multi-feuilles)
+// Par défaut, SEULES les colonnes ressemblant au nom ou à l'adresse sont
+// cochées ; les autres sont décochées. Cochez pour consolider une colonne.
+let MAP_INFO=null;
+const MAP_DEFAULT_ON=['nom_prenom','adresse1','adresse2','ville'];
+function openMapModal(info){
+  MAP_INFO=info;
+  const fieldOpts=f=>['<option value="">— choisir —</option>'].concat(
+    info.fields.map(fl=>`<option value="${fl.key}"${fl.key===f?' selected':''}>${esc(fl.label)}</option>`)).join('');
+  const sheets=info.sheets.map((s,si)=>{
+    const rows=s.columns.map(c=>{
+      const on=MAP_DEFAULT_ON.includes(c.auto);   // coché par défaut seulement nom/adresse
+      return `<tr class="${on?'':'off'}">
+        <td class="mapchk"><input type="checkbox" data-sheet="${si}" data-col="${c.index}" ${on?'checked':''}></td>
+        <td class="mapcol">${esc(c.title||'(sans titre)')}</td>
+        <td class="mapsamp" title="${esc(c.samples.join(' · '))}">${esc(c.samples.filter(Boolean).join(' · ')||'—')}</td>
+        <td><select data-sheet="${si}" data-col="${c.index}" ${on?'':'disabled'}>${fieldOpts(c.auto)}</select></td>
+      </tr>`;
+    }).join('');
+    return `<div class="mapsheet">
+      <div class="mapsheet-h">Feuille : « ${esc(s.name)} »
+        <span class="mapbadge ${s.importable?'ok':'no'}">${s.importable?(s.row_count+' ligne(s)'):'pas de colonne Nom'}</span></div>
+      <table class="maptbl"><thead><tr><th></th><th>Colonne de l'Excel</th><th>Exemples</th><th>Consolider dans…</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+    </div>`;
+  }).join('');
+  $('#mapBody').innerHTML=sheets;
+  // Lier chaque case à son menu (activer/désactiver).
+  $('#mapBody').querySelectorAll('.mapchk input').forEach(chk=>{
+    chk.onchange=()=>{
+      const tr=chk.closest('tr');
+      const sel=tr.querySelector('select');
+      sel.disabled=!chk.checked; tr.classList.toggle('off',!chk.checked);
+      if(chk.checked && !sel.value){ // à la coche, proposer la meilleure devinette
+        const guess=MAP_INFO.sheets[+chk.dataset.sheet].columns.find(c=>c.index===+chk.dataset.col);
+        if(guess&&guess.auto) sel.value=guess.auto;
+      }
+    };
+  });
+  $('#mapSub').textContent=info.name+' — cochez les colonnes à importer et indiquez où les consolider. Par défaut, seules les colonnes « nom » et « adresse » sont cochées.';
+  $('#mapWarn').textContent='';
+  $('#mapModal').classList.add('open');
+}
+
+// 4) import avec la correspondance validée
+$('#mapGo').onclick=async()=>{
+  if(!MAP_INFO)return;
+  const mapping={};
+  $('#mapBody').querySelectorAll('.mapchk input:checked').forEach(chk=>{
+    const si=+chk.dataset.sheet, col=+chk.dataset.col;
+    const sel=$('#mapBody').querySelector(`select[data-sheet="${si}"][data-col="${col}"]`);
+    const field=sel?sel.value:'';
+    if(!field)return;
+    const sheetName=MAP_INFO.sheets[si].name;
+    (mapping[sheetName]=mapping[sheetName]||{})[field]=col;
+  });
+  const hasName=Object.values(mapping).some(m=>'nom_prenom' in m);
+  if(!hasName){ $('#mapWarn').textContent='Cochez au moins la colonne « Nom / Prénom » et indiquez-la comme donnée.'; return; }
+  $('#mapGo').disabled=true; $('#mapGo').textContent='Import…';
+  try{
+    const r=await (await fetch('/api/excel_import',{method:'POST',headers:H,
+      body:JSON.stringify({path:MAP_INFO.path,mapping})})).json();
+    if(r.ok){ toast(r.count+' ligne(s) importée(s) depuis '+esc(r.source)+'.'); location.reload(); }
+    else $('#mapWarn').textContent=r.error||'Import impossible.';
+  }finally{ $('#mapGo').disabled=false; $('#mapGo').textContent='Importer'; }
+};
+$('#mapModal').onclick=e=>{ if(e.target.id==='mapModal')$('#mapModal').classList.remove('open'); };
+$('#xlPicker').onclick=e=>{ if(e.target.id==='xlPicker')$('#xlPicker').classList.remove('open'); };
 
 /* ===================== util ===================== */
 let pickCb=null;

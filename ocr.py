@@ -133,18 +133,24 @@ def _rasterize(pdf_path, out_dir, dpi=200, max_pages=4):
     except Exception:
         pass
     if _have("pdftoppm"):
-        subprocess.run(["pdftoppm", "-r", str(dpi), "-png", "-l", str(max_pages),
-                        pdf_path, os.path.join(out_dir, "p")],
-                       capture_output=True, timeout=120)
+        try:
+            subprocess.run(["pdftoppm", "-r", str(dpi), "-png", "-l", str(max_pages),
+                            pdf_path, os.path.join(out_dir, "p")],
+                           capture_output=True, timeout=120)
+        except Exception:
+            pass          # PDF illisible / timeout : on n'interrompt pas le scan
         imgs = sorted(glob.glob(os.path.join(out_dir, "p*.png")))
         if imgs:
             return imgs
     if _is_macos() and _have("sips"):
-        out = os.path.join(out_dir, "p0.png")
-        r = subprocess.run(["sips", "-s", "format", "png", pdf_path, "--out", out],
-                           capture_output=True, timeout=60)
-        if r.returncode == 0 and os.path.exists(out):
-            imgs = [out]
+        try:
+            out = os.path.join(out_dir, "p0.png")
+            r = subprocess.run(["sips", "-s", "format", "png", pdf_path, "--out", out],
+                               capture_output=True, timeout=60)
+            if r.returncode == 0 and os.path.exists(out):
+                imgs = [out]
+        except Exception:
+            pass
     return imgs
 
 
@@ -188,11 +194,15 @@ def ocr_file(path, max_pages=4):
     if cached is not None:
         return cached
     ext = os.path.splitext(path)[1].lower()
-    if ext == ".pdf":
-        text = ocr_pdf(path, max_pages=max_pages)
-    elif ext in (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"):
-        text = ocr_image(path)
-    else:
+    # Un fichier illisible ne doit JAMAIS interrompre le scan : on renvoie "".
+    try:
+        if ext == ".pdf":
+            text = ocr_pdf(path, max_pages=max_pages)
+        elif ext in (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"):
+            text = ocr_image(path)
+        else:
+            text = ""
+    except Exception:
         text = ""
     _cache_put(path, max_pages, text)
     return text

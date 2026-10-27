@@ -122,6 +122,15 @@ def init():
         edited_at TEXT,
         approved_at TEXT
     );
+    CREATE TABLE IF NOT EXISTS history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        bkey TEXT, field TEXT, old TEXT, new TEXT,
+        at TEXT, kind TEXT, reverted INTEGER DEFAULT 0
+    );
+    CREATE TABLE IF NOT EXISTS stages (
+        bkey TEXT PRIMARY KEY,
+        data TEXT               -- JSON {stage: iso_ts}  + {_lock_at: iso_ts}
+    );
     """)
     # Ajouter la colonne originals si base ancienne.
     try:
@@ -253,6 +262,105 @@ def set_setting(key, value):
                 (key, json.dumps(value, ensure_ascii=False)))
     con.commit()
     con.close()
+
+
+# ---------------------------------------------------------------- historique
+def _now_iso():
+    import datetime
+    return datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+
+
+def add_history(bkey, field, old, new, kind="edit"):
+    """Journalise une modification (champ, ancienne→nouvelle valeur)."""
+    init()
+    con = _connect()
+    con.execute("INSERT INTO history(bkey, field, old, new, at, kind) VALUES (?,?,?,?,?,?)",
+                (bkey, field, "" if old is None else str(old),
+                 "" if new is None else str(new), _now_iso(), kind))
+    con.commit(); con.close()
+
+
+def get_history(bkey):
+    init()
+    con = _connect()
+    rows = con.execute(
+        "SELECT id, field, old, new, at, kind, reverted FROM history "
+        "WHERE bkey=? ORDER BY id DESC", (bkey,)).fetchall()
+    con.close()
+    return [dict(r) for r in rows]
+
+
+def get_history_entry(hid):
+    init()
+    con = _connect()
+    r = con.execute("SELECT * FROM history WHERE id=?", (hid,)).fetchone()
+    con.close()
+    return dict(r) if r else None
+
+
+def mark_history_reverted(hid):
+    init()
+    con = _connect()
+    con.execute("UPDATE history SET reverted=1 WHERE id=?", (hid,))
+    con.commit(); con.close()
+
+
+def clear_all_history():
+    """Vide tout l'historique des modifications. Renvoie le nombre d'entrées."""
+    init()
+    con = _connect()
+    n = con.execute("SELECT COUNT(*) AS c FROM history").fetchone()["c"]
+    con.execute("DELETE FROM history")
+    con.commit(); con.close()
+    return n
+
+
+# ---------------------------------------------------------------- étapes lettre
+def get_stages(bkey):
+    init()
+    con = _connect()
+    r = con.execute("SELECT data FROM stages WHERE bkey=?", (bkey,)).fetchone()
+    con.close()
+    if not r:
+        return {}
+    try:
+        return json.loads(r["data"])
+    except Exception:
+        return {}
+
+
+def set_stages(bkey, data):
+    init()
+    con = _connect()
+    con.execute("INSERT OR REPLACE INTO stages(bkey, data) VALUES (?,?)",
+                (bkey, json.dumps(data, ensure_ascii=False)))
+    con.commit(); con.close()
+
+
+def all_stages():
+    """Toutes les étapes, indexées par bkey (pour enrichir /api/clients)."""
+    init()
+    con = _connect()
+    rows = con.execute("SELECT bkey, data FROM stages").fetchall()
+    con.close()
+    out = {}
+    for r in rows:
+        try:
+            out[r["bkey"]] = json.loads(r["data"])
+        except Exception:
+            pass
+    return out
+
+
+def clear_all_stages():
+    """Réinitialise TOUTES les étapes (statuts) et leurs verrous/horodatages.
+    Renvoie le nombre de biens concernés."""
+    init()
+    con = _connect()
+    n = con.execute("SELECT COUNT(*) AS c FROM stages").fetchone()["c"]
+    con.execute("DELETE FROM stages")
+    con.commit(); con.close()
+    return n
 
 
 def has_data():
@@ -520,7 +628,20 @@ def clear_access_code():
     cfg = _load_app_config()
     cfg.pop("access_hash", None)
     cfg.pop("access_salt", None)
+    cfg.pop("session_secret", None)   # invalide les sessions « mémorisées »
     _save_app_config(cfg)
+
+
+def session_secret():
+    """Secret stable (créé une fois) pour signer le jeton « rester connecté »."""
+    import secrets
+    cfg = _load_app_config()
+    sec = cfg.get("session_secret")
+    if not sec:
+        sec = secrets.token_hex(16)
+        cfg["session_secret"] = sec
+        _save_app_config(cfg)
+    return sec
 
 
 def rename_current(new_name):

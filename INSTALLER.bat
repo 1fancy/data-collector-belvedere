@@ -84,7 +84,7 @@ rem  4) Installer les dependances + construire l'exe
 rem ---------------------------------------------------------------
 echo   [4/5] Preparation (quelques minutes la premiere fois)...
 %PY% -m pip install --quiet --upgrade pip
-%PY% -m pip install --quiet pyinstaller python-docx openpyxl rapidocr_onnxruntime
+%PY% -m pip install --quiet pyinstaller python-docx openpyxl fpdf2 rapidocr_onnxruntime
 pushd "%SRC%"
 %PY% -m PyInstaller --noconfirm DataCollector.spec
 popd

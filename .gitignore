@@ -20,3 +20,9 @@ __pycache__/
 # Système
 .DS_Store
 vendor/
+
+# Exports de données clients (PII : noms, CIN, téléphones) — ne jamais versionner
+data.LOCKED-*.json
+desistements_export.json
+sync_export_erp.json
+*_export_erp.json
